@@ -233,12 +233,14 @@ window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerC
 
 /* ============ jacket art ============ */
 let _jid=0;
-function jacketSVG(song){ const id='jg'+(_jid++); if(song.id==='sakura') return sakuraJacket(id); if(song.id==='seaoff') return liveJacket(id); return gradJacket(id, song.c1||'#ffb3df', song.c2||'#9b6bff', song.icon||'\uD83C\uDFB5'); }
+function jacketSVG(song){ const id='jg'+(_jid++); if(song.id==='sakura') return sakuraJacket(id); if(song.id==='seaoff') return liveJacket(id); if(song.id==='kirakira') return kiraJacket(id); return gradJacket(id, song.c1||'#ffb3df', song.c2||'#9b6bff', song.icon||'\uD83C\uDFB5'); }
+function jacketHTML(song){ return song.jacket ? `<img class="jacket-img" src="${song.jacket}" alt="" draggable="false">` : jacketSVG(song); }
 function flower(x,y,r,col){ let s=`<g transform="translate(${x},${y})">`; for(let i=0;i<5;i++) s+=`<ellipse cx="0" cy="${-r}" rx="${r*0.52}" ry="${r}" fill="${col}" transform="rotate(${i*72})"/>`; s+=`<circle r="${r*0.4}" fill="#fff4c2"/></g>`; return s; }
 function star4(x,y,r,col){ return `<path d="M${x} ${y-r} L${x+r*0.3} ${y-r*0.3} L${x+r} ${y} L${x+r*0.3} ${y+r*0.3} L${x} ${y+r} L${x-r*0.3} ${y+r*0.3} L${x-r} ${y} L${x-r*0.3} ${y-r*0.3} Z" fill="${col}"/>`; }
 function sakuraJacket(id){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd0ec"/><stop offset="0.55" stop-color="#e7a8ff"/><stop offset="1" stop-color="#9b6bff"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/><circle cx="50" cy="58" r="40" fill="rgba(255,255,255,0.12)"/>${flower(26,30,11,'#ff9ed4')}${flower(72,40,14,'#ffb3df')}${flower(46,68,10,'#ff8fcf')}${flower(80,75,8,'#ffc6e8')}${star4(15,62,5,'#fff3b0')}${star4(88,22,4,'#fff3b0')}${star4(60,18,3.5,'#ffffff')}${star4(34,85,3.5,'#ffffff')}</svg>`; }
 function liveJacket(id){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff9ec4"/><stop offset="0.5" stop-color="#b86bd6"/><stop offset="1" stop-color="#5f7bff"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/><polygon points="50,0 18,100 38,100" fill="rgba(255,255,255,0.16)"/><polygon points="50,0 82,100 62,100" fill="rgba(255,255,255,0.12)"/><g transform="translate(50,40)"><rect x="-9" y="-20" width="18" height="34" rx="9" fill="#3a2150"/><circle cx="0" cy="-11" r="7.5" fill="#d9c4ff"/><line x1="-6" y1="-15" x2="6" y2="-15" stroke="#7a5ba8" stroke-width="1"/><line x1="-6" y1="-11" x2="6" y2="-11" stroke="#7a5ba8" stroke-width="1"/><line x1="-6" y1="-7" x2="6" y2="-7" stroke="#7a5ba8" stroke-width="1"/><rect x="-2" y="14" width="4" height="26" rx="2" fill="#2c1840"/></g><path d="M24 76 a5 5 0 0 1 10 0 a5 5 0 0 1 10 0 q0 6 -10 12 q-10 -6 -10 -12 Z" fill="#ff6ec0"/>${star4(82,26,5,'#fff3b0')}${star4(16,30,4,'#ffffff')}</svg>`; }
 function gradJacket(id,c1,c2,icon){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/>${star4(78,24,5,'#fff3b0')}${star4(22,30,4,'#ffffff')}<text x="50" y="64" font-size="40" text-anchor="middle">${icon}</text></svg>`; }
+function kiraJacket(id){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe48a"/><stop offset="0.5" stop-color="#ff9ed4"/><stop offset="1" stop-color="#9b6bff"/></linearGradient><radialGradient id="${id}b" cx="50%" cy="46%" r="55%"><stop offset="0" stop-color="rgba(255,255,255,0.45)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><rect width="100" height="100" fill="url(#${id})"/><rect width="100" height="100" fill="url(#${id}b)"/>${star4(50,47,21,'#fff6c0')}${star4(50,47,13,'#ffffff')}${star4(24,28,7,'#fff3b0')}${star4(80,32,6,'#ffffff')}${star4(74,74,8,'#fff3b0')}${star4(22,72,5,'#ffffff')}${star4(88,58,4,'#fff3b0')}${star4(38,84,4,'#ffffff')}</svg>`; }
 
 /* ============ song list / data ============ */
 let MANIFEST_SONGS=[], sessionSongs=[];
@@ -254,7 +256,7 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item'+(song.isNew?' new':'');
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
-    el.innerHTML=`<div class="jacket">${song.isNew?'<span class="new-badge">NEW</span>':''}${jacketSVG(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
+    el.innerHTML=`<div class="jacket">${song.isNew?'<span class="new-badge">NEW</span>':''}${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
     el.onclick=()=>openOptions(song); list.appendChild(el); });
   if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=CUR_CHAR_IMG; c.alt=''; list.appendChild(c); } }
@@ -262,7 +264,7 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
 /* ============ options ============ */
 async function openOptions(song){
   AudioEngine.stopPreview(); resetPreviewBtn();
-  $('#optJacket').innerHTML=jacketSVG(song); $('#optTitle').textContent=song.title; $('#optSub').textContent=(song.artist||'')+(song.sub?(' ・ '+song.sub):''); $('#optBpm').textContent='読み込み中…';
+  $('#optJacket').innerHTML=jacketHTML(song); $('#optTitle').textContent=song.title; $('#optSub').textContent=(song.artist||'')+(song.sub?(' ・ '+song.sub):''); $('#optBpm').textContent='読み込み中…';
   $('#diffSelect').innerHTML='<div class="opt-pill"><div class="pn">…</div></div>'; $('#lengthSelect').innerHTML='';
   $('#songSelectScreen').classList.add('hidden'); $('#startScreen').classList.remove('hidden');
   try{ await loadSongData(song); }
@@ -323,7 +325,7 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
   $('#resDiff').textContent=diffKey;
   const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
-  $('#resJacket').innerHTML=jacketSVG(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
+  $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
   $('#resultRank').textContent=rank;
   const banner=$('#resBanner'); banner.classList.toggle('fail',G.failed);
   banner.textContent=G.failed?'FAILED':allPerfect?'ALL PERFECT':fullCombo?'FULL COMBO':'CLEARED';

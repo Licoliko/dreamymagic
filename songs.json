@@ -4,6 +4,26 @@
   },
   "songs": [
     {
+      "id": "kirakira",
+      "title": "Kira-Kira Magic",
+      "artist": "Pastel Kingdom",
+      "sub": "Japanese Ver.",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ffd96e",
+      "c2": "#ff79c6",
+      "bpm": 161.5,
+      "duration": 177.557,
+      "audio": "songs/kirakira/audio.mp3",
+      "chart": "songs/kirakira/chart.json",
+      "preview": 53.3,
+      "jacket": "songs/kirakira/jacket.webp"
+    },
+    {
       "id": "sakura",
       "title": "Sakura Runway",
       "artist": "Pastel Kingdom",
@@ -20,7 +40,8 @@
       "duration": 146.411,
       "audio": "songs/sakura/audio.mp3",
       "chart": "songs/sakura/chart.json",
-      "preview": 40
+      "preview": 40,
+      "jacket": "songs/sakura/jacket.webp"
     },
     {
       "id": "seaoff",
@@ -38,7 +59,8 @@
       "duration": 182.741,
       "audio": "songs/seaoff/audio.mp3",
       "chart": "songs/seaoff/chart.json",
-      "preview": 60
+      "preview": 60,
+      "jacket": "songs/seaoff/jacket.webp"
     }
   ]
 }
