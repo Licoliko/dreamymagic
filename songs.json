@@ -1,0 +1,44 @@
+{
+  "player": {
+    "name": "Magic♪P"
+  },
+  "songs": [
+    {
+      "id": "sakura",
+      "title": "Sakura Runway",
+      "artist": "Pastel Kingdom",
+      "sub": "Alt. Version",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ff9ad4",
+      "c2": "#9b6bff",
+      "bpm": 123.05,
+      "duration": 146.411,
+      "audio": "songs/sakura/audio.mp3",
+      "chart": "songs/sakura/chart.json",
+      "preview": 40
+    },
+    {
+      "id": "seaoff",
+      "title": "シーオフ・ピンク",
+      "artist": "Pastel Kingdom",
+      "sub": "Live Version",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": false,
+      "c1": "#ff8fb0",
+      "c2": "#6fb0ff",
+      "bpm": 89.1,
+      "duration": 182.741,
+      "audio": "songs/seaoff/audio.mp3",
+      "chart": "songs/seaoff/chart.json",
+      "preview": 60
+    }
+  ]
+}
