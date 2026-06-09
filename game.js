@@ -16,6 +16,26 @@ const CharStore={ owned:new Set(['magic']), equipped:'magic',
 let CUR_CHAR_IMG='assets/char.webp', CUR_CHAR_AVA='assets/avatar.webp';
 function applyCharacter(){ const c=charById(CharStore.equipped); CUR_CHAR_IMG=c.img; CUR_CHAR_AVA=c.ava;
   const ci=$('#charImg'); if(ci)ci.src=CUR_CHAR_IMG; const av=$('#avaImg'); if(av)av.src=CUR_CHAR_AVA; const rc=$('#resChar'); if(rc)rc.src=CUR_CHAR_IMG; const pn=$('#playerName'); if(pn)pn.textContent=c.name; renderSongs(); }
+const NOTE_SKINS=[
+  {id:'classic', name:'クラシック', price:0, kind:'draw'},
+  {id:'energy', name:'エナジー', price:300, kind:'bar', sheet:'assets/notes/energy.webp'},
+  {id:'cosmo', name:'コスモ', price:300, kind:'bar', sheet:'assets/notes/cosmo.webp'},
+  {id:'crystal', name:'クリスタル', price:300, kind:'bar', sheet:'assets/notes/crystal.webp'},
+  {id:'rune', name:'まほうじん', price:300, kind:'bar', sheet:'assets/notes/rune.webp'},
+  {id:'potion', name:'ポーション', price:300, kind:'bar', sheet:'assets/notes/potion.webp'},
+  {id:'element', name:'エレメント', price:300, kind:'bar', sheet:'assets/notes/element.webp'},
+  {id:'fish', name:'おさかな', price:300, kind:'icon', sheet:'assets/notes/fish.webp'},
+  {id:'fruit', name:'フルーツ', price:300, kind:'icon', sheet:'assets/notes/fruit.webp'},
+  {id:'cake', name:'スイーツ', price:300, kind:'icon', sheet:'assets/notes/cake.webp'},
+];
+const NOTE_DEFAULT=['classic','energy','fish'];
+function noteSkinById(id){ return NOTE_SKINS.find(s=>s.id===id)||NOTE_SKINS[0]; }
+const NoteStore={ owned:new Set(NOTE_DEFAULT), equipped:'classic',
+  load(){ try{ const o=localStorage.getItem('pk_notes_owned'); if(o) JSON.parse(o).forEach(id=>this.owned.add(id)); const e=localStorage.getItem('pk_note_equip'); if(e&&NOTE_SKINS.some(s=>s.id===e)) this.equipped=e; }catch(e){} NOTE_DEFAULT.forEach(id=>this.owned.add(id)); },
+  save(){ try{ localStorage.setItem('pk_notes_owned',JSON.stringify([...this.owned])); localStorage.setItem('pk_note_equip',this.equipped); }catch(e){} } };
+const noteImgs={}; let CUR_NOTE=NOTE_SKINS[0];
+function loadNoteSkin(skin){ if(!skin||skin.kind==='draw'||noteImgs[skin.id])return; const img=new Image(); const rec={img,ready:false,aspect:1}; noteImgs[skin.id]=rec; img.onload=()=>{ rec.ready=true; rec.aspect=img.naturalHeight/(img.naturalWidth/4); }; img.src=skin.sheet; }
+function applyNoteSkin(){ CUR_NOTE=noteSkinById(NoteStore.equipped); loadNoteSkin(CUR_NOTE); }
 let DPR=1,W=0,H=0,geo={};
 let LITE=false, SHOW_CHAR=true;
 
@@ -181,7 +201,14 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
     if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n.lane,clamp(1-dt/travel,0,1)); }
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
-function drawNote(lane,p){ const {x,y,scale}=lanePos(lane,p); const w=geo.noteBaseW*scale,h=18*scale,c=LANE_COLORS[lane];
+function drawNote(lane,p){ const {x,y,scale}=lanePos(lane,p); const c=LANE_COLORS[lane];
+  const sk=CUR_NOTE, rec=sk&&sk.kind!=='draw'?noteImgs[sk.id]:null;
+  if(rec&&rec.ready){ const cw=rec.img.naturalWidth/4, ch=rec.img.naturalHeight; let w,h;
+    if(sk.kind==='bar'){ w=geo.noteBaseW*scale*1.2; h=w*rec.aspect; } else { h=geo.laneW*scale*0.96; w=h*(cw/ch); }
+    if(!LITE){ ctx.save(); ctx.shadowColor=c.a; ctx.shadowBlur=10*scale; ctx.drawImage(rec.img,lane*cw,0,cw,ch,x-w/2,y-h/2,w,h); ctx.restore(); }
+    else ctx.drawImage(rec.img,lane*cw,0,cw,ch,x-w/2,y-h/2,w,h);
+    return; }
+  const w=geo.noteBaseW*scale,h=18*scale;
   ctx.save(); ctx.translate(x,y); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=16*scale;} const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.35,c.a); g.addColorStop(1,c.b);
   roundRect(-w/2,-h/2,w,h,h/2); ctx.fillStyle=g; ctx.fill(); ctx.globalAlpha=.9; ctx.fillStyle='rgba(255,255,255,.85)'; roundRect(-w/2+w*0.12,-h/2+2*scale,w*0.76,3*scale,2); ctx.fill(); ctx.restore(); }
 function drawHoldBody(lane,pHead,pTail){ const a=lanePos(lane,pTail),b=lanePos(lane,pHead),c=LANE_COLORS[lane]; ctx.save(); ctx.beginPath(); const wa=geo.noteBaseW*a.scale*0.6,wb=geo.noteBaseW*b.scale*0.6;
@@ -346,10 +373,23 @@ window.addEventListener('keydown',e=>{ if(rebindLane<0)return; const k=(e.key||'
   e.preventDefault(); e.stopImmediatePropagation();
   if(k==='escape'){ rebindLane=-1; renderKeyConfig(); return; }
   setLaneKey(rebindLane,k); rebindLane=-1; renderKeyConfig(); }, true);
-function openShop(){ updateShopCoins(); renderShop(); $('#songSelectScreen').classList.add('hidden'); $('#shopScreen').classList.remove('hidden'); }
+function openShop(){ updateShopCoins(); setShopCat(shopCat); $('#songSelectScreen').classList.add('hidden'); $('#shopScreen').classList.remove('hidden'); }
 function closeShop(){ $('#shopScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); }
 function updateShopCoins(){ const e=$('#shopCoinVal'); if(e)e.textContent=Wallet.coins.toLocaleString(); }
+let shopCat='char';
+function setShopCat(cat){ shopCat=cat; document.querySelectorAll('#shopSeg .seg').forEach(b=>b.classList.toggle('sel',b.dataset.cat===cat)); renderShop(); }
+function notePreview(sk){ if(sk.kind==='draw') return '<div class="note-classic">'+LANE_COLORS.map(c=>'<i style="background:linear-gradient(180deg,'+c.a+','+c.b+')"></i>').join('')+'</div>'; return '<img class="note-sheet" src="'+sk.sheet+'" alt="">'; }
 function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
+  if(shopCat==='note'){ grid.className='shop-grid note-grid';
+    NOTE_SKINS.forEach(s=>{ const owned=NoteStore.owned.has(s.id), eq=NoteStore.equipped===s.id;
+      const card=document.createElement('div'); card.className='shop-card noteskin'+(eq?' equipped':'');
+      const btn=eq?'<button class="shop-btn equipped">選択中</button>':owned?'<button class="shop-btn select">選択する</button>':'<button class="shop-btn buy">\uD83E\uDE99 '+s.price+'</button>';
+      card.innerHTML='<div class="note-portrait">'+notePreview(s)+'</div><div class="shop-name">'+s.name+'</div>'+btn;
+      const b=card.querySelector('.shop-btn');
+      if(!eq&&owned){ b.onclick=()=>{ NoteStore.equipped=s.id; NoteStore.save(); applyNoteSkin(); renderShop(); toast(s.name+'に変更したよ \u2728'); }; }
+      else if(!owned){ b.onclick=()=>{ if(Wallet.coins<s.price){ toast('コインが足りないよ…'); return; } Wallet.add(-s.price); NoteStore.owned.add(s.id); NoteStore.equipped=s.id; NoteStore.save(); applyNoteSkin(); updateShopCoins(); renderShop(); toast(s.name+'を購入！ \u2728'); }; }
+      grid.appendChild(card); }); return; }
+  grid.className='shop-grid';
   CHARACTERS.forEach(c=>{ const owned=CharStore.owned.has(c.id), eq=CharStore.equipped===c.id;
     const card=document.createElement('div'); card.className='shop-card'+(eq?' equipped':'');
     const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy">\uD83E\uDE99 '+c.price+'</button>';
@@ -402,8 +442,9 @@ function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ cons
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
-async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); resize(); buildStars();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); renderKeyConfig(); requestAnimationFrame(loop);
+async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); resize(); buildStars();
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderKeyConfig(); requestAnimationFrame(loop);
+  document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }
 boot();
