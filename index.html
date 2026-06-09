@@ -142,18 +142,68 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #countdown{position:absolute;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 #countdown .c{font-family:'Mochiy Pop One';font-size:120px;color:#fff;text-shadow:0 0 30px rgba(255,180,240,.9);animation:cdown .9s ease;}
 @keyframes cdown{0%{opacity:0;transform:scale(2)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.7)}}
-.result-rank{font-family:'Mochiy Pop One';font-size:104px;line-height:1;background:linear-gradient(180deg,#fff7d0,#ffcf5c,#f5a623);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 26px rgba(255,200,100,.8));animation:rankin .6s cubic-bezier(.2,1.4,.4,1);}
-@keyframes rankin{0%{opacity:0;transform:scale(.3) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
-#resultScreen{background:radial-gradient(120% 90% at 50% 30%,rgba(40,20,75,.5),rgba(16,8,40,.95));}
-.result-score{font-family:'Mochiy Pop One';font-size:30px;margin:4px 0;}
-.coin-reward{font-family:'Mochiy Pop One';font-size:20px;color:#ffd96e;margin:6px 0 2px;filter:drop-shadow(0 0 10px rgba(255,200,90,.7));}
-.coin-breakdown{font-size:10px;color:#cdb6f0;margin-bottom:10px;}
-.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px 26px;margin:10px 0 6px;font-size:14px;}
-.result-grid .k{color:#d9c4ff;} .result-grid .v{font-weight:800;text-align:right;}
-.v.p{color:#ff9be0}.v.gr{color:#ffd866}.v.gd{color:#7fd0ff}.v.ms{color:#ff8a8a}
-.result-acc{font-size:15px;color:#ffe7a8;margin-bottom:14px;}
-.row-btns{display:flex;gap:12px;}
-.fail-tag{color:#ff8a8a;font-family:'Mochiy Pop One';font-size:20px;margin-bottom:6px;}
+#resultScreen{padding:0;justify-content:flex-start;background:radial-gradient(130% 80% at 70% 12%,rgba(120,70,170,.6),rgba(40,20,75,.7) 45%,rgba(16,8,40,.97));}
+#resultScreen::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 72% 22%,rgba(255,210,255,.12),transparent 70%);pointer-events:none;}
+.result-body{position:relative;z-index:1;width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(env(safe-area-inset-top,0),14px) 16px 18px;}
+.res-head{display:flex;align-items:center;justify-content:space-between;}
+.res-title{font-family:'Cinzel',serif;font-weight:700;font-size:42px;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffd8f0 50%,#ffb0e6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(255,150,230,.6));animation:resFade .5s ease both;}
+.share-btn{pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;font-weight:700;color:#ffe7a8;background:rgba(60,32,110,.6);border:1.5px solid rgba(255,210,150,.5);border-radius:14px;padding:7px 12px;}
+.share-btn .si{font-size:15px;}
+.res-diffrow{display:flex;align-items:center;gap:12px;margin-top:8px;animation:resFade .5s .05s ease both;}
+.diff-chip{background:linear-gradient(90deg,#b06bff,#ff79c6);color:#fff;font-weight:800;font-size:13px;letter-spacing:.08em;padding:5px 16px;border-radius:8px;box-shadow:0 3px 10px rgba(160,90,255,.4);}
+.res-stars{font-size:19px;letter-spacing:2px;color:#3a2060;}
+.res-stars b{color:#ffcf5c;text-shadow:0 0 10px rgba(255,200,90,.9);}
+.res-songrow{display:flex;gap:13px;align-items:center;margin-top:13px;animation:resFade .5s .1s ease both;}
+.res-jacket{width:74px;height:74px;border-radius:13px;overflow:hidden;flex:none;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.2);}
+.res-jacket svg{width:100%;height:100%;}
+.res-songtitle{font-family:'Mochiy Pop One';font-size:20px;line-height:1.15;}
+.res-songartist{font-size:12px;color:#d6bdf6;margin:2px 0 5px;}
+.res-notes{font-size:12px;color:#c9b6ec;} .res-notes b{color:#fff;font-size:14px;margin-left:4px;}
+.res-rankwrap{position:relative;display:flex;flex-direction:column;align-items:center;margin:14px 0 4px;animation:resFade .5s .15s ease both;}
+.res-rank-glow{position:absolute;top:50%;left:50%;width:230px;height:230px;transform:translate(-50%,-58%);background:radial-gradient(circle,rgba(255,210,120,.35),transparent 62%);pointer-events:none;}
+.res-rank{position:relative;font-family:'Cinzel',serif;font-weight:700;font-size:120px;line-height:1;background:linear-gradient(180deg,#fff7d0,#ffd24a 45%,#f0a020);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px rgba(255,200,90,.9));}
+.res-rank.in{animation:rankin .7s cubic-bezier(.2,1.5,.4,1);}
+@keyframes rankin{0%{opacity:0;transform:scale(.3) rotate(-14deg)}60%{opacity:1}100%{opacity:1;transform:scale(1) rotate(0)}}
+.res-rank-spark{position:absolute;inset:0;pointer-events:none;}
+.res-banner{position:relative;margin-top:6px;font-family:'Mochiy Pop One';font-size:18px;letter-spacing:.06em;color:#fff;background:linear-gradient(90deg,#8b3bd6,#c14fc1);padding:7px 30px;border-radius:8px;box-shadow:0 5px 16px rgba(120,40,170,.5),inset 0 0 14px rgba(255,200,255,.25);border:1.5px solid rgba(255,210,150,.5);animation:bannerIn .5s .4s ease both;}
+.res-banner.fail{background:linear-gradient(90deg,#8a3a55,#b85a6a);}
+@keyframes bannerIn{0%{opacity:0;transform:scale(.7)}100%{opacity:1;transform:scale(1)}}
+.res-panel{background:linear-gradient(160deg,rgba(70,40,120,.5),rgba(40,22,82,.62));border:1.5px solid rgba(255,210,150,.32);border-radius:18px;padding:15px 18px;margin-top:14px;text-align:left;box-shadow:0 5px 16px rgba(0,0,0,.3),inset 0 0 20px rgba(255,200,255,.05);animation:resFade .5s .2s ease both;}
+.res-songinfo{text-align:left;flex:1;min-width:0;}
+.sp-top{display:flex;align-items:center;gap:10px;}
+.sp-label{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;}
+.newrec{font-family:'Mochiy Pop One';font-size:11px;color:#3a1d00;background:linear-gradient(90deg,#ffe27a,#ffb347);padding:3px 10px;border-radius:7px;box-shadow:0 0 12px rgba(255,200,90,.7);animation:recPulse 1s infinite;}
+@keyframes recPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.sp-score{font-family:'Mochiy Pop One';font-size:46px;line-height:1;background:linear-gradient(180deg,#fff,#ffd8f0);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,160,230,.5));margin:4px 0;}
+.sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';margin-left:8px;}
+.res-coin{display:inline-flex;align-items:center;gap:8px;font-family:'Mochiy Pop One';font-size:24px;color:#ffd96e;margin:14px auto 2px;padding:8px 22px;border-radius:24px;background:rgba(60,40,20,.4);border:1.5px solid rgba(255,200,90,.5);filter:drop-shadow(0 0 12px rgba(255,200,90,.5));animation:resFade .5s .25s ease both;}
+.coin-breakdown{font-size:11px;color:#cdb6f0;text-align:center;}
+.res-charrow{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-top:10px;min-height:40px;animation:resFade .5s .3s ease both;}
+.res-bubble{position:relative;max-width:58%;background:linear-gradient(160deg,#fff,#ffe9fb);color:#7a3bbf;font-weight:700;font-size:13px;line-height:1.5;border-radius:18px;padding:12px 15px;box-shadow:0 5px 14px rgba(0,0,0,.3);margin-bottom:24px;}
+.res-bubble::after{content:"";position:absolute;right:-8px;bottom:14px;border:9px solid transparent;border-left-color:#ffe9fb;}
+.res-char{width:40%;max-width:175px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));animation:bob 2.8s ease-in-out infinite;}
+.judge-grid{display:flex;flex-direction:column;gap:0;}
+.jrow{display:flex;align-items:center;justify-content:space-between;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.08);}
+.jrow:last-child{border-bottom:none;}
+.jrow .jk{font-family:'Mochiy Pop One';font-size:17px;}
+.jrow .jv{font-family:'Mochiy Pop One';font-size:22px;font-weight:800;}
+.jk.p{color:#ff9be0}.jk.gr{color:#c9a0ff}.jk.gd{color:#9fe88a}.jk.ms{color:#9aa0b5}
+.combo-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1.5px solid rgba(255,255,255,.14);}
+.combo-row .ck{display:flex;align-items:center;gap:10px;font-size:13px;color:#d9c4ff;}
+.fc-badge{font-family:'Mochiy Pop One';font-size:11px;color:#fff;background:linear-gradient(90deg,#b06bff,#ff79c6);padding:3px 10px;border-radius:7px;}
+.combo-row .cv{font-family:'Mochiy Pop One';font-size:26px;color:#fff;}
+.tp-title{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;margin-bottom:10px;}
+.histo{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:74px;padding:0 4px;}
+.histo .bar{flex:1;max-width:18px;border-radius:4px 4px 0 0;height:2px;background:linear-gradient(180deg,#ffd24a,#7fd0ff);transition:height .6s cubic-bezier(.2,1,.4,1);}
+.histo .bar.mid{background:linear-gradient(180deg,#fff0a0,#ffce5a);}
+.lje{display:flex;justify-content:space-between;margin-top:10px;}
+.lje .cell{flex:1;text-align:center;}
+.lje .cn{font-size:10px;letter-spacing:.1em;color:#bca6e0;}
+.lje .cvv{font-family:'Mochiy Pop One';font-size:18px;margin-top:3px;display:inline-block;padding:2px 14px;border-radius:8px;background:rgba(255,255,255,.08);}
+.lje .late .cvv{color:#7fb0ff}.lje .just .cvv{color:#ffd24a}.lje .early .cvv{color:#9fe88a}
+.result-footer{position:relative;z-index:2;width:100%;display:flex;gap:10px;justify-content:center;align-items:center;padding:12px 14px max(env(safe-area-inset-bottom,0),12px);background:linear-gradient(180deg,rgba(30,16,60,0),rgba(20,10,45,.95) 40%);border-top:1.5px solid rgba(255,210,150,.25);}
+.result-footer .btn{font-size:17px;padding:13px 30px;}
+@keyframes resFade{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 #pauseOverlay{background:rgba(20,10,45,.82);}
 #pauseOverlay h2{font-family:'Mochiy Pop One';font-size:34px;margin-bottom:16px;color:#fff;}
 .pause-vol{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 16px;margin-bottom:18px;width:240px;max-width:80vw;}
@@ -249,19 +299,37 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
   </div>
 
   <div id="resultScreen" class="screen hidden">
-    <div id="failTag" class="fail-tag hidden">CLEAR FAILED&#8230;</div>
-    <div class="result-rank" id="resultRank">S</div>
-    <div class="lbl">SCORE</div><div class="result-score" id="resultScore">00000000</div>
-    <div class="coin-reward" id="coinReward">&#129689; +0</div>
-    <div class="coin-breakdown" id="coinBreakdown"></div>
-    <div class="result-grid">
-      <div class="k">PERFECT</div><div class="v p" id="rPerfect">0</div>
-      <div class="k">GREAT</div><div class="v gr" id="rGreat">0</div>
-      <div class="k">GOOD</div><div class="v gd" id="rGood">0</div>
-      <div class="k">MISS</div><div class="v ms" id="rMiss">0</div>
+    <div class="result-body" id="resultBody">
+      <div class="res-head"><div class="res-title">RESULT</div><button class="share-btn" id="shareBtn"><span class="si">&#10138;</span>シェア</button></div>
+      <div class="res-diffrow"><span class="diff-chip" id="resDiff">NORMAL</span><span class="res-stars" id="resStars"></span></div>
+      <div class="res-songrow">
+        <div class="res-jacket" id="resJacket"></div>
+        <div class="res-songinfo"><div class="res-songtitle" id="resTitle">-</div><div class="res-songartist" id="resArtist">-</div><div class="res-notes">ノーツ数 <b id="resNotes">0</b></div></div>
+      </div>
+      <div class="res-rankwrap"><div class="res-rank-glow"></div><div class="res-rank" id="resultRank">S</div><div class="res-banner" id="resBanner">CLEARED</div></div>
+      <div class="res-panel score-panel">
+        <div class="sp-top"><span class="sp-label">SCORE</span><span class="newrec hidden" id="newRec">NEW RECORD!</span></div>
+        <div class="sp-score" id="resultScore">0</div>
+        <div class="sp-high">HIGH SCORE <b id="resHigh">0</b></div>
+      </div>
+      <div style="text-align:center"><div class="res-coin" id="coinReward">&#129689; +0</div><div class="coin-breakdown" id="coinBreakdown"></div></div>
+      <div class="res-charrow"><div class="res-bubble" id="resBubble">おつかれさま！</div><img class="res-char" id="resChar" alt=""></div>
+      <div class="res-panel">
+        <div class="judge-grid">
+          <div class="jrow"><span class="jk p">PERFECT</span><span class="jv" id="rPerfect">0</span></div>
+          <div class="jrow"><span class="jk gr">GREAT</span><span class="jv" id="rGreat">0</span></div>
+          <div class="jrow"><span class="jk gd">GOOD</span><span class="jv" id="rGood">0</span></div>
+          <div class="jrow"><span class="jk ms">MISS</span><span class="jv" id="rMiss">0</span></div>
+        </div>
+        <div class="combo-row"><span class="ck">MAX COMBO <span class="fc-badge hidden" id="fcBadge">FULL COMBO!</span></span><span class="cv" id="rCombo">0</span></div>
+      </div>
+      <div class="res-panel timing-panel">
+        <div class="tp-title">TIMING</div>
+        <div class="histo" id="histo"></div>
+        <div class="lje"><div class="cell late"><div class="cn">LATE</div><div class="cvv" id="tLate">0</div></div><div class="cell just"><div class="cn">JUST</div><div class="cvv" id="tJust">0</div></div><div class="cell early"><div class="cn">EARLY</div><div class="cvv" id="tEarly">0</div></div></div>
+      </div>
     </div>
-    <div class="result-acc">MAX COMBO <b id="rCombo">0</b>&#12288;ACC <b id="rAcc">0%</b></div>
-    <div class="row-btns"><button class="btn" id="retryBtn">RETRY</button><button class="btn ghost" id="backBtn">曲選択</button></div>
+    <div class="result-footer"><button class="btn ghost" id="retryBtn">リトライ</button><button class="btn" id="backBtn">楽曲選択へ</button></div>
   </div>
 
   <div id="settingsPopup" class="screen hidden">

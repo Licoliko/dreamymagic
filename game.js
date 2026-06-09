@@ -112,7 +112,7 @@ function chartOf(song){ return song._chart.charts[diffKey]; }
 function newGame(){ const limit=curLimit(), src=chartOf(selectedSong).notes;
   const notes=src.filter(n=>n.t<=limit-0.3).map((n,i)=>({id:i,t:n.t,lane:n.lane,hold:(n.hold&&n.t+n.hold<=limit-0.1)?n.hold:0,state:'idle',headJudged:false}));
   G={ notes, limit, totalNotes:notes.length, score:0,displayScore:0,combo:0,maxCombo:0,life:1000,fever:0,feverActive:false,feverEnd:0,
-    counts:{PERFECT:0,GREAT:0,GOOD:0,MISS:0},accWeight:0,accCount:0,
+    counts:{PERFECT:0,GREAT:0,GOOD:0,MISS:0},accWeight:0,accCount:0,offsets:[],
     travel: diffKey==='HARD'?1.35:diffKey==='NORMAL'?1.55:1.8,
     laneFlash:[0,0,0,0],lanePressed:[false,false,false,false],particles:[], started:false,paused:false,ended:false,failed:false }; }
 const WIN={PERFECT:0.055,GREAT:0.11,GOOD:0.16}, PTS={PERFECT:1000,GREAT:600,GOOD:300,MISS:0};
@@ -120,7 +120,7 @@ function songTime(){ return AudioEngine.time()+AudioEngine.offset; }
 
 function judgeTap(lane){ if(!G||!G.started||G.ended) return; const t=songTime(); let best=null,bd=999;
   for(const n of G.notes){ if(n.lane!==lane||n.state==='done'||n.state==='miss'||n.headJudged) continue; const dt=Math.abs(n.t-t); if(dt<bd){bd=dt;best=n;} }
-  if(best&&bd<=WIN.GOOD){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; best.headJudged=true; applyJudge(j,best.lane); best.state=(best.hold>0&&j!=='GOOD')?'holding':'done'; triggerHit(best.lane,j); } }
+  if(best&&bd<=WIN.GOOD){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; best.headJudged=true; G.offsets.push(best.t-t); applyJudge(j,best.lane); best.state=(best.hold>0&&j!=='GOOD')?'holding':'done'; triggerHit(best.lane,j); } }
 function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PERFECT'?1:j==='GREAT'?0.65:j==='GOOD'?0.3:0;
   if(j==='MISS'){ G.combo=0; G.life=Math.max(0,G.life-40); if(G.life<=0&&!G.ended){G.failed=true;endGame();} }
   else{ G.combo++; if(G.combo>G.maxCombo)G.maxCombo=G.combo; G.life=Math.min(1000,G.life+(j==='PERFECT'?7:j==='GREAT'?4:1));
@@ -261,15 +261,45 @@ function clearReward(){ if(G.failed) return {total:0,parts:[]};
   const scoreB=Math.floor(G.score/20000)*10; const fc=(G.counts.MISS===0&&G.totalNotes>0)?50:0;
   const parts=[['クリア',base],['ランク',rankB],['スコア',scoreB]]; if(fc)parts.push(['フルコンボ',fc]);
   return {total:base+rankB+scoreB+fc, parts}; }
+function rankOf(acc,failed){ return failed?'F':acc>=0.95?'SS':acc>=0.90?'S':acc>=0.80?'A':acc>=0.68?'B':acc>=0.5?'C':'D'; }
+function starsForRank(r){ return ({SS:5,S:5,A:4,B:3,C:2,D:1,F:0})[r]||0; }
+function hsKey(){ return 'pk_hs_'+selectedSong.id+'_'+diffKey+'_'+lengthKey; }
+function getHS(){ try{ return parseInt(localStorage.getItem(hsKey()),10)||0; }catch(e){ return 0; } }
+function setHS(v){ try{ localStorage.setItem(hsKey(),String(v)); }catch(e){} }
+function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.round(v).toLocaleString()); const start=performance.now();
+  function step(now){ const p=Math.min(1,(now-start)/dur); const e=1-Math.pow(1-p,3); el.textContent=fmt(to*e); if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to); }
+  requestAnimationFrame(step); }
+function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const BINS=13,RANGE=0.16,mid=(BINS-1)/2; const bins=new Array(BINS).fill(0);
+  offsets.forEach(o=>{ let idx=Math.round((o/RANGE)*mid+mid); idx=Math.max(0,Math.min(BINS-1,idx)); bins[idx]++; });
+  const mx=Math.max(1,...bins);
+  bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
 function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); endFever(); stage.classList.remove('playing');
-  const acc=G.accCount?G.accWeight/G.accCount:0; const rank=G.failed?'F':acc>=0.95?'SS':acc>=0.90?'S':acc>=0.80?'A':acc>=0.68?'B':acc>=0.5?'C':'D';
-  $('#failTag').classList.toggle('hidden',!G.failed); $('#resultRank').textContent=rank; $('#resultScore').textContent=String(G.score).padStart(8,'0');
-  $('#rPerfect').textContent=G.counts.PERFECT; $('#rGreat').textContent=G.counts.GREAT; $('#rGood').textContent=G.counts.GOOD; $('#rMiss').textContent=G.counts.MISS;
-  $('#rCombo').textContent=G.maxCombo; $('#rAcc').textContent=(acc*100).toFixed(1)+'%';
+  const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
+  const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
+  const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
+  $('#resDiff').textContent=diffKey;
+  const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
+  $('#resJacket').innerHTML=jacketSVG(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
+  $('#resultRank').textContent=rank;
+  const banner=$('#resBanner'); banner.classList.toggle('fail',G.failed);
+  banner.textContent=G.failed?'FAILED':allPerfect?'ALL PERFECT':fullCombo?'FULL COMBO':'CLEARED';
+  $('#fcBadge').classList.toggle('hidden', !(fullCombo||allPerfect));
+  $('#resBubble').textContent=G.failed?'うぅ…つぎはきっとできるよ！':allPerfect?'やった〜！完璧だよっ！すごいすごーいっ☆':fullCombo?'ノーミス！その調子だよっ♪':(rank==='S'||rank==='SS')?'すごい！とっても上手っ✨':(rank==='A')?'いい感じ！その調子♪':'クリア！おつかれさまっ☆';
+  const rc=$('#resChar'); rc.src=ASSET_CHAR; rc.style.display=SHOW_CHAR?'':'none';
+  const prevHS=getHS(), isNew=!G.failed&&G.score>prevHS, newHS=Math.max(prevHS,G.score); if(isNew)setHS(G.score);
+  $('#newRec').classList.toggle('hidden',!isNew);
   const rew=clearReward(); Wallet.add(rew.total);
-  $('#coinReward').innerHTML='&#129689; +'+rew.total.toLocaleString();
-  $('#coinBreakdown').textContent = rew.total? rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('　') : (G.failed?'クリアできなかった…コインなし':'');
-  $('#resultScreen').classList.remove('hidden'); }
+  $('#coinBreakdown').textContent=rew.total?rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('\u3000'):(G.failed?'クリアできなかった…コインなし':'');
+  const JW=WIN.PERFECT; let late=0,just=0,early=0; G.offsets.forEach(o=>{ if(o>JW)early++; else if(o<-JW)late++; else just++; });
+  const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
+  $('#resultScreen').classList.remove('hidden'); $('#resultBody').scrollTop=0;
+  countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
+  countUp($('#resultScore'),G.score,1100); countUp($('#resHigh'),newHS,1100);
+  countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
+  countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
+  [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
+  buildHisto(G.offsets);
+  setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
 function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); $('#pauseOverlay').classList.remove('hidden'); }
 function resumeGame(){ if(!G||!G.paused)return; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); G.paused=false; AudioEngine.resume();} else showN(); },700); }
@@ -305,6 +335,10 @@ $('#restartBtn').onclick=()=>{ $('#pauseOverlay').classList.add('hidden'); Audio
 $('#quitBtn').onclick=toSongSelect;
 $('#retryBtn').onclick=()=>{ $('#resultScreen').classList.add('hidden'); startGame(); };
 $('#backBtn').onclick=toSongSelect;
+$('#shareBtn').onclick=()=>{ if(!selectedSong)return; const txt='Pastel Kingdom Rhythm \uD83C\uDFB5\n'+selectedSong.title+' ['+diffKey+']\nSCORE '+(G?G.score.toLocaleString():'0')+' / '+$('#resultRank').textContent+' '+$('#resBanner').textContent;
+  if(navigator.share){ navigator.share({title:'Pastel Kingdom Rhythm',text:txt}).catch(()=>{}); }
+  else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('結果をコピーしたよ \u2728')).catch(()=>toast('コピーできませんでした')); }
+  else toast('共有に対応していません'); };
 $('#favBtn').onclick=()=>{ favOnly=!favOnly; $('#favBtn').classList.toggle('on',favOnly); renderSongs(); };
 $('#gearBtn').onclick=()=>{ $('#volRange').value=Math.round(volume*100); $('#settingsPopup').classList.remove('hidden'); };
 $('#closeSettings').onclick=()=>$('#settingsPopup').classList.add('hidden');
