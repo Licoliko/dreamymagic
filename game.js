@@ -132,7 +132,11 @@ function songTime(){ return AudioEngine.time()+AudioEngine.offset; }
 
 function judgeTap(lane){ if(!G||!G.started||G.ended) return; const t=songTime(); let best=null,bd=999;
   for(const n of G.notes){ if(n.lane!==lane||n.state==='done'||n.state==='miss'||n.headJudged) continue; const dt=Math.abs(n.t-t); if(dt<bd){bd=dt;best=n;} }
-  if(best&&bd<=WIN.GOOD){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; best.headJudged=true; G.offsets.push(best.t-t); applyJudge(j,best.lane); best.state=(best.hold>0&&j!=='GOOD')?'holding':'done'; triggerHit(best.lane,j); } }
+  if(best&&bd<=WIN.GOOD){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; best.headJudged=true; G.offsets.push(best.t-t); applyJudge(j,best.lane); best.state=best.hold>0?'holding':'done'; triggerHit(best.lane,j); } }
+function releaseLane(lane){ if(!G||!G.started||G.paused||G.ended) return; const t=songTime();
+  for(const n of G.notes){ if(n.lane!==lane||n.state!=='holding') continue; const tail=n.t+n.hold;
+    if(t < tail-WIN.GOOD){ n.state='miss'; applyJudge('MISS',n.lane); }
+    else { const ad=Math.abs(t-tail); const j=ad<=WIN.PERFECT?'PERFECT':ad<=WIN.GREAT?'GREAT':'GOOD'; n.state='done'; G.offsets.push(tail-t); applyJudge(j,n.lane); triggerHit(n.lane,j); } } }
 function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PERFECT'?1:j==='GREAT'?0.65:j==='GOOD'?0.3:0;
   if(j==='MISS'){ G.combo=0; G.life=Math.max(0,G.life-40); if(G.life<=0&&!G.ended){G.failed=true;endGame();} }
   else{ G.combo++; if(G.combo>G.maxCombo)G.maxCombo=G.combo; G.life=Math.min(1000,G.life+(j==='PERFECT'?7:j==='GREAT'?4:1));
@@ -158,7 +162,7 @@ let rafId=null;
 function loop(){ rafId=requestAnimationFrame(loop); if(!G||G.ended) return;
   const playing=G.started&&!G.paused; const t=G.started?songTime():0; if(!playing){ draw(t); return; }
   for(const n of G.notes){ if(n.state==='idle'&&!n.headJudged&&t-n.t>WIN.GOOD){ n.headJudged=true; n.state='miss'; applyJudge('MISS',n.lane); }
-    if(n.state==='holding'){ const tail=n.t+n.hold; if(t>=tail){ n.state='done'; applyJudge('PERFECT',n.lane); triggerHit(n.lane,'PERFECT'); } else if(!G.lanePressed[n.lane]&&t>n.t+0.12){ n.state='done'; } } }
+    if(n.state==='holding'){ const tail=n.t+n.hold; if(t>tail+WIN.GOOD){ n.state='miss'; applyJudge('MISS',n.lane); } } }
   if(G.feverActive&&t>=G.feverEnd) endFever();
   const lim=G.limit; $('#progFill').style.width=Math.min(100,t/lim*100)+'%'; $('#timeLabel').textContent=fmt(Math.max(0,t))+' / '+fmt(lim);
   if(t>=lim+0.3&&!G.ended) endGame(); tickScore(); draw(t); }
@@ -193,12 +197,12 @@ function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&25
 function laneFromX(clientX){ const r=stage.getBoundingClientRect(),x=clientX-r.left; let best=0,bd=1e9; for(let i=0;i<LANES;i++){const d=Math.abs(x-geo.botX[i]); if(d<bd){bd=d;best=i;}} return best; }
 const activeTouches={};
 stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]=lane; G.lanePressed[lane]=true; judgeTap(lane); } e.preventDefault(); },{passive:false});
-stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const lane=activeTouches[tch.identifier]; if(lane!==undefined){ delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).includes(lane)) G.lanePressed[lane]=false; } } },{passive:false});
-stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const l=activeTouches[tch.identifier]; if(l!==undefined){delete activeTouches[tch.identifier]; G.lanePressed[l]=false;} } });
+stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const lane=activeTouches[tch.identifier]; if(lane!==undefined){ delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).includes(lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
+stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const l=activeTouches[tch.identifier]; if(l!==undefined){delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
 stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeTap(lane); });
-window.addEventListener('mouseup',()=>{ if(G)G.lanePressed=[false,false,false,false]; });
+window.addEventListener('mouseup',()=>{ if(G){ for(let l=0;l<LANES;l++) releaseLane(l); G.lanePressed=[false,false,false,false]; } });
 window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeTap(lane); } });
-window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G) G.lanePressed[lane]=false; });
+window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G){ G.lanePressed[lane]=false; releaseLane(lane); } });
 
 /* ============ jacket art ============ */
 let _jid=0;
