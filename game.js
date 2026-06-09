@@ -1,13 +1,13 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const stage=$('#stage'), canvas=$('#playfield'), ctx=canvas.getContext('2d');
-const LANES=4, LANE_KEYS=['d','f','j','k'];
+const LANES=4; let LANE_KEYS=['d','f','j','k'];
 const LANE_COLORS=[{a:'#ff8fd0',b:'#ff4fb0'},{a:'#ffd96e',b:'#f5a623'},{a:'#7fc8ff',b:'#3d8bff'},{a:'#c19bff',b:'#8b5cff'}];
 const CHARACTERS=[
-  {id:'magic', name:'Magic\u266AP', img:'assets/char.webp', ava:'assets/avatar.webp', price:0, c1:'#7a4fb0', c2:'#34205e'},
-  {id:'stella', name:'Stella', img:'assets/char_stella.webp', ava:'assets/avatar_stella.webp', price:600, c1:'#b9a0e0', c2:'#4b337e'},
+  {id:'magic', name:'Sweets', img:'assets/char.webp', ava:'assets/avatar.webp', price:0, c1:'#7a4fb0', c2:'#34205e'},
+  {id:'stella', name:'Floating', img:'assets/char_stella.webp', ava:'assets/avatar_stella.webp', price:600, c1:'#b9a0e0', c2:'#4b337e'},
   {id:'marine', name:'Marine', img:'assets/char_marine.webp', ava:'assets/avatar_marine.webp', price:600, c1:'#6f9fe0', c2:'#243069'},
-  {id:'citron', name:'Citron', img:'assets/char_citron.webp', ava:'assets/avatar_citron.webp', price:600, c1:'#c9d36a', c2:'#4f6f2a'},
+  {id:'citron', name:'Lemon', img:'assets/char_citron.webp', ava:'assets/avatar_citron.webp', price:600, c1:'#c9d36a', c2:'#4f6f2a'},
 ];
 function charById(id){ return CHARACTERS.find(c=>c.id===id)||CHARACTERS[0]; }
 const CharStore={ owned:new Set(['magic']), equipped:'magic',
@@ -325,6 +325,23 @@ let toastTimer=null;
 function toast(msg){ const el=$('#toast'); el.innerHTML=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1900); }
 function syncCal(){ $('#calVal').textContent=latencyMs+' ms'; }
 function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b=$('#pauseVol'); if(a)a.value=Math.round(v*100); if(b)b.value=Math.round(v*100); }
+/* key config */
+let rebindLane=-1;
+function loadKeys(){ try{ const k=localStorage.getItem('pk_keys'); if(k){ const arr=JSON.parse(k); if(Array.isArray(arr)&&arr.length===4) LANE_KEYS=arr.map(x=>String(x).toLowerCase()); } }catch(e){} }
+function saveKeys(){ try{ localStorage.setItem('pk_keys',JSON.stringify(LANE_KEYS)); }catch(e){} }
+function keyLabel(k){ if(k===' '||k==='spacebar'||k==='space')return 'Space'; if(k==='arrowleft')return '\u2190'; if(k==='arrowright')return '\u2192'; if(k==='arrowup')return '\u2191'; if(k==='arrowdown')return '\u2193'; return k.length===1?k.toUpperCase():k; }
+function updateKeyHint(){ const h=$('#playHint'); if(h) h.textContent='タップ：4レーンを叩こう！　PC：'+LANE_KEYS.map(keyLabel).join(' / '); }
+function renderKeyConfig(){ const wrap=$('#keyCfg'); if(!wrap)return; wrap.innerHTML='';
+  LANE_KEYS.forEach((k,i)=>{ const b=document.createElement('div'); b.className='keycap'+(rebindLane===i?' wait':'');
+    b.innerHTML='<span class="dot" style="background:'+LANE_COLORS[i].a+'"></span>'+(rebindLane===i?'押す…':keyLabel(k));
+    b.onclick=()=>{ rebindLane=(rebindLane===i?-1:i); renderKeyConfig(); }; wrap.appendChild(b); });
+  updateKeyHint(); }
+function setLaneKey(lane,k){ const other=LANE_KEYS.indexOf(k); if(other>=0&&other!==lane) LANE_KEYS[other]=LANE_KEYS[lane]; LANE_KEYS[lane]=k; saveKeys(); }
+window.addEventListener('keydown',e=>{ if(rebindLane<0)return; const k=(e.key||'').toLowerCase();
+  if(['shift','control','alt','meta','capslock','tab','contextmenu','dead'].includes(k))return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(k==='escape'){ rebindLane=-1; renderKeyConfig(); return; }
+  setLaneKey(rebindLane,k); rebindLane=-1; renderKeyConfig(); }, true);
 function openShop(){ updateShopCoins(); renderShop(); $('#songSelectScreen').classList.add('hidden'); $('#shopScreen').classList.remove('hidden'); }
 function closeShop(){ $('#shopScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); }
 function updateShopCoins(){ const e=$('#shopCoinVal'); if(e)e.textContent=Wallet.coins.toLocaleString(); }
@@ -365,8 +382,8 @@ $('#shareBtn').onclick=()=>{ if(!selectedSong)return; const txt='Pastel Kingdom 
   else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('結果をコピーしたよ \u2728')).catch(()=>toast('コピーできませんでした')); }
   else toast('共有に対応していません'); };
 $('#favBtn').onclick=()=>{ favOnly=!favOnly; $('#favBtn').classList.toggle('on',favOnly); renderSongs(); };
-$('#gearBtn').onclick=()=>{ $('#volRange').value=Math.round(volume*100); $('#settingsPopup').classList.remove('hidden'); };
-$('#closeSettings').onclick=()=>$('#settingsPopup').classList.add('hidden');
+$('#gearBtn').onclick=()=>{ $('#volRange').value=Math.round(volume*100); rebindLane=-1; renderKeyConfig(); $('#settingsPopup').classList.remove('hidden'); };
+$('#closeSettings').onclick=()=>{ rebindLane=-1; renderKeyConfig(); $('#settingsPopup').classList.add('hidden'); };
 $('#volRange').oninput=(e)=>setVol(e.target.value/100);
 $('#pauseVol').oninput=(e)=>setVol(e.target.value/100);
 $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
@@ -381,8 +398,8 @@ function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ cons
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
-async function boot(){ loadPrefs(); CharStore.load(); resize(); buildStars();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); requestAnimationFrame(loop);
+async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); resize(); buildStars();
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); renderKeyConfig(); requestAnimationFrame(loop);
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }
 boot();

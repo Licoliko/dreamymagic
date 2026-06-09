@@ -254,6 +254,10 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .cal-ctrl button{cursor:pointer;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:17px;}
 .toggle{cursor:pointer;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font-weight:800;font-size:12px;border-radius:20px;padding:6px 16px;min-width:58px;}
 .toggle.on{background:linear-gradient(90deg,#ffb347,#ff79c6);border-color:#ffe7a8;color:#3a1d00;}
+.keycfg{display:flex;gap:8px;}
+.keycap{flex:1;cursor:pointer;border-radius:11px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-family:'Mochiy Pop One';font-size:16px;padding:9px 0 8px;text-align:center;transition:.12s;}
+.keycap.wait{border-color:#ffcf5c;background:rgba(255,207,92,.22);}
+.keycap .dot{display:block;width:16px;height:4px;border-radius:3px;margin:0 auto 6px;}
 .set-note{font-size:10px;color:#bca6e0;margin:-10px 0 16px;text-align:left;line-height:1.5;}
 #stage.lite.fever{animation:none!important;}
 #stage.lite .bgstar{animation:none;opacity:.55;}
@@ -327,7 +331,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="sel-label">DIFFICULTY</div><div class="opt-row" id="diffSelect"></div>
     <div class="sel-label">LENGTH</div><div class="opt-row" id="lengthSelect"></div>
     <button class="btn" id="startBtn">START &#9834;</button>
-    <div class="hint">タップ：4レーンを叩こう！　PC：D / F / J / K</div>
+    <div class="hint" id="playHint">タップ：4レーンを叩こう！　PC：D / F / J / K</div>
   </div>
 
   <div id="pauseOverlay" class="screen hidden">
@@ -384,6 +388,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       <div class="set-row"><span class="k">軽量モード</span><button class="toggle" id="liteToggle">OFF</button></div>
       <div class="set-note">動作が重いときにON（発光や解像度を下げて軽くします）</div>
       <div class="set-row"><span class="k">キャラを表示</span><button class="toggle on" id="charToggle">ON</button></div>
+      <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="k">キー設定（PC）</span><div class="keycfg" id="keyCfg"></div><div class="set-note" style="margin:0">変えたいキーをタップ → 新しいキーを押してね</div></div>
       <button class="btn" id="closeSettings" style="width:100%;padding:12px;">とじる</button>
     </div>
   </div>
