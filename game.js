@@ -5,8 +5,9 @@ const LANES=4, LANE_KEYS=['d','f','j','k'];
 const LANE_COLORS=[{a:'#ff8fd0',b:'#ff4fb0'},{a:'#ffd96e',b:'#f5a623'},{a:'#7fc8ff',b:'#3d8bff'},{a:'#c19bff',b:'#8b5cff'}];
 const ASSET_CHAR='assets/char.webp', ASSET_AVA='assets/avatar.webp';
 let DPR=1,W=0,H=0,geo={};
+let LITE=false, SHOW_CHAR=true;
 
-function resize(){ const r=stage.getBoundingClientRect(); DPR=Math.min(window.devicePixelRatio||1,2.5); W=r.width; H=r.height;
+function resize(){ const r=stage.getBoundingClientRect(); DPR=Math.min(window.devicePixelRatio||1, LITE?1:2); W=r.width; H=r.height;
   canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); computeGeo(); }
 function computeGeo(){ const cx=W/2,hitY=H*0.70,topY=H*0.13,span=W*0.92,laneW=span/LANES,topF=0.17; const botX=[],topX=[];
   for(let i=0;i<LANES;i++){ const bx=cx+(i-(LANES-1)/2)*laneW; botX.push(bx); topX.push(cx+(bx-cx)*topF); } geo={cx,hitY,topY,laneW,botX,topX,noteBaseW:laneW*0.82}; }
@@ -128,7 +129,7 @@ function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PER
   showJudge(j); updateHUD(); }
 function activateFever(){ G.feverActive=true; G.feverEnd=songTime()+7; stage.classList.add('fever'); const fb=$('#feverBanner'); fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show'); $('#feverWrap').classList.add('ready'); }
 function endFever(){ G.feverActive=false; G.fever=0; stage.classList.remove('fever'); $('#feverWrap').classList.remove('ready'); }
-function triggerHit(lane,j){ G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=j==='PERFECT'?16:j==='GREAT'?10:6;
+function triggerHit(lane,j){ G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5; G.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,col:col.a,size:2+Math.random()*3}); } }
 
 let scoreAddTimer=null;
@@ -165,13 +166,13 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
 function drawNote(lane,p){ const {x,y,scale}=lanePos(lane,p); const w=geo.noteBaseW*scale,h=18*scale,c=LANE_COLORS[lane];
-  ctx.save(); ctx.translate(x,y); ctx.shadowColor=c.a; ctx.shadowBlur=16*scale; const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.35,c.a); g.addColorStop(1,c.b);
+  ctx.save(); ctx.translate(x,y); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=16*scale;} const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.35,c.a); g.addColorStop(1,c.b);
   roundRect(-w/2,-h/2,w,h,h/2); ctx.fillStyle=g; ctx.fill(); ctx.globalAlpha=.9; ctx.fillStyle='rgba(255,255,255,.85)'; roundRect(-w/2+w*0.12,-h/2+2*scale,w*0.76,3*scale,2); ctx.fill(); ctx.restore(); }
 function drawHoldBody(lane,pHead,pTail){ const a=lanePos(lane,pTail),b=lanePos(lane,pHead),c=LANE_COLORS[lane]; ctx.save(); ctx.beginPath(); const wa=geo.noteBaseW*a.scale*0.6,wb=geo.noteBaseW*b.scale*0.6;
-  ctx.moveTo(a.x-wa/2,a.y); ctx.lineTo(a.x+wa/2,a.y); ctx.lineTo(b.x+wb/2,b.y); ctx.lineTo(b.x-wb/2,b.y); ctx.closePath(); ctx.fillStyle=hexA(c.a,0.45); ctx.shadowColor=c.a; ctx.shadowBlur=12; ctx.fill(); ctx.restore(); }
+  ctx.moveTo(a.x-wa/2,a.y); ctx.lineTo(a.x+wa/2,a.y); ctx.lineTo(b.x+wb/2,b.y); ctx.lineTo(b.x-wb/2,b.y); ctx.closePath(); ctx.fillStyle=hexA(c.a,0.45); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=12;} ctx.fill(); ctx.restore(); }
 function drawCircle(x,y,r,c,intensity){ ctx.save(); ctx.translate(x,y); ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.strokeStyle=hexA(c.a,0.5+intensity*0.5); ctx.lineWidth=2; ctx.stroke();
   ctx.beginPath(); ctx.arc(0,0,r*0.7,0,7); ctx.strokeStyle=hexA(c.b,0.4); ctx.lineWidth=1.4; ctx.stroke(); ctx.rotate(Math.PI/4); const s=r*0.38*(1+intensity*0.4); const g=ctx.createLinearGradient(-s,-s,s,s); g.addColorStop(0,'#fff'); g.addColorStop(1,c.a);
-  ctx.shadowColor=c.a; ctx.shadowBlur=14+intensity*22; ctx.fillStyle=g; ctx.fillRect(-s/2,-s/2,s,s); ctx.restore(); }
+  ctx.shadowColor=c.a; if(!LITE)ctx.shadowBlur=14+intensity*22; ctx.fillStyle=g; ctx.fillRect(-s/2,-s/2,s,s); ctx.restore(); }
 function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 function clamp(v,a,b){ return v<a?a:v>b?b:v; }
 function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
@@ -200,19 +201,20 @@ function gradJacket(id,c1,c2,icon){ return `<svg viewBox="0 0 100 100" xmlns="ht
 let MANIFEST_SONGS=[], sessionSongs=[];
 function allSongs(){ return MANIFEST_SONGS.concat(sessionSongs); }
 const TABS=[{k:'all',label:'すべて',ic:'\u266A'},{k:'POPS',label:'POPS',ic:'\u266B'},{k:'KAWAII',label:'KAWAII',ic:'\u2665'},{k:'BPM',label:'BPM',ic:'\u3030'},{k:'オリジナル',label:'オリジナル',ic:'\u265B'}];
-const NAV=[{k:'home',label:'ホーム',ic:'\uD83C\uDFF0'},{k:'music',label:'楽曲',ic:'\uD83C\uDFB5',sel:true},{k:'live',label:'ライブ',ic:'\u2B50'},{k:'shop',label:'ショップ',ic:'\uD83D\uDECD\uFE0F'},{k:'gacha',label:'ガチャ',ic:'\uD83C\uDF81'}];
+const NAV=[{k:'home',label:'ホーム',ic:'\uD83C\uDFF0'},{k:'music',label:'楽曲',ic:'\uD83C\uDFB5',sel:true},{k:'shop',label:'ショップ',ic:'\uD83D\uDECD\uFE0F'},{k:'gacha',label:'ガチャ',ic:'\uD83C\uDF81'}];
 let curTab='all', favOnly=false; const favorites=new Set();
 function buildTabs(){ const wrap=$('#tabs'); wrap.innerHTML=''; TABS.forEach(t=>{ const el=document.createElement('div'); el.className='tab'+(t.k===curTab?' sel':''); el.innerHTML=`<span class="ic">${t.ic}</span>${t.label}`; el.onclick=()=>{ curTab=t.k; buildTabs(); renderSongs(); }; wrap.appendChild(el); }); }
 function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(n=>{ const el=document.createElement('div'); el.className='nav-item'+(n.sel?' sel':''); el.innerHTML=`<span class="ic">${n.ic}</span>${n.label}`; el.onclick=()=>{ if(!n.sel) toast(n.label+'は準備中だよ \u2728'); }; wrap.appendChild(el); }); }
 function filteredSongs(){ let arr=allSongs().slice(); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
 function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=filteredSongs();
-  if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「MP3を追加」から端末の曲を選んでね')+'</div>'; return; }
-  arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item'+(song.isNew?' new':'');
+  if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「MP3を追加」から端末の曲を選んでね')+'</div>'; }
+  else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item'+(song.isNew?' new':'');
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
     el.innerHTML=`<div class="jacket">${song.isNew?'<span class="new-badge">NEW</span>':''}${jacketSVG(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
-    el.onclick=()=>openOptions(song); list.appendChild(el); }); }
+    el.onclick=()=>openOptions(song); list.appendChild(el); });
+  if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=ASSET_CHAR; c.alt=''; list.appendChild(c); } }
 
 /* ============ options ============ */
 async function openOptions(song){
@@ -280,6 +282,9 @@ let toastTimer=null;
 function toast(msg){ const el=$('#toast'); el.innerHTML=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1900); }
 function syncCal(){ $('#calVal').textContent=latencyMs+' ms'; }
 function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b=$('#pauseVol'); if(a)a.value=Math.round(v*100); if(b)b.value=Math.round(v*100); }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); }catch(e){} }
+function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
+function applyChar(){ const b=$('#charToggle'); if(b){b.textContent=SHOW_CHAR?'ON':'OFF'; b.classList.toggle('on',SHOW_CHAR);} const ci=$('#charImg'); if(ci)ci.style.display=SHOW_CHAR?'':'none'; renderSongs(); }
 
 /* ============ import mp3 ============ */
 const PASTELS=[['#ff9ad4','#9b6bff'],['#ff8fb0','#6fb0ff'],['#ffd6a0','#ff8fc0'],['#a0f0d0','#6fb0ff'],['#c9a0ff','#ff9ad4']];
@@ -307,13 +312,15 @@ $('#volRange').oninput=(e)=>setVol(e.target.value/100);
 $('#pauseVol').oninput=(e)=>setVol(e.target.value/100);
 $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
+$('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
+$('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
 
-function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<26;i++){ const s=document.createElement('div'); s.className='bgstar'; s.textContent=Math.random()<.5?'\u2726':'\u2727'; s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.fontSize=(8+Math.random()*16)+'px'; s.style.animationDelay=(Math.random()*2.6)+'s'; layer.appendChild(s); }
-  for(let i=0;i<5;i++){ const m=document.createElement('div'); m.className='macaron'; m.style.left=Math.random()*86+'%'; m.style.top=(Math.random()*55)+'%'; m.style.transform=`scale(${0.7+Math.random()*0.8})`; layer.appendChild(m); } }
+function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ const s=document.createElement('div'); s.className='bgstar'; s.textContent=Math.random()<.5?'\u2726':'\u2727'; s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.fontSize=(8+Math.random()*16)+'px'; s.style.animationDelay=(Math.random()*2.6)+'s'; layer.appendChild(s); }
+  for(let i=0;i<4;i++){ const m=document.createElement('div'); m.className='macaron'; m.style.left=Math.random()*86+'%'; m.style.top=(Math.random()*55)+'%'; m.style.transform=`scale(${0.7+Math.random()*0.8})`; layer.appendChild(m); } }
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
     if(data.player&&data.player.name) $('#playerName').textContent=data.player.name; MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
-async function boot(){ resize(); buildStars(); $('#charImg').src=ASSET_CHAR; $('#menuCharImg').src=ASSET_CHAR; $('#avaImg').src=ASSET_AVA;
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); requestAnimationFrame(loop);
+async function boot(){ loadPrefs(); resize(); buildStars(); $('#charImg').src=ASSET_CHAR; $('#avaImg').src=ASSET_AVA;
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); requestAnimationFrame(loop);
   await loadManifest(); renderSongs(); }
 boot();

@@ -17,7 +17,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .sky-castle{position:absolute;top:6%;left:50%;transform:translateX(-50%);width:62%;opacity:.55;filter:drop-shadow(0 0 26px rgba(255,180,230,.5));pointer-events:none;z-index:1;}
 .cloud{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(210,160,255,.35),rgba(160,110,220,0) 70%);filter:blur(6px);pointer-events:none;z-index:1;}
 .starsLayer{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
-.bgstar{position:absolute;color:var(--glow);filter:drop-shadow(0 0 6px rgba(255,220,150,.9));animation:twinkle 2.6s ease-in-out infinite;}
+.bgstar{position:absolute;color:var(--glow);text-shadow:0 0 5px rgba(255,220,150,.7);animation:twinkle 2.8s ease-in-out infinite;}
 @keyframes twinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 .macaron{position:absolute;width:42px;height:30px;border-radius:50%/55%;background:linear-gradient(#ffc3e1,#ff9ccd);box-shadow:inset 0 -7px 0 #ffd8ec,0 0 14px rgba(255,150,210,.5);opacity:.5;z-index:2;}
 .macaron::after{content:"";position:absolute;left:8%;right:8%;top:42%;height:26%;background:#fff0f8;border-radius:40%;}
@@ -118,7 +118,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .fav-star{position:absolute;top:10px;right:12px;font-size:22px;color:rgba(255,255,255,.35);cursor:pointer;transition:.15s;}
 .fav-star.on{color:#ffcf5c;filter:drop-shadow(0 0 8px rgba(255,200,90,.9));transform:scale(1.1);}
 .empty-msg{text-align:center;color:#cdb6f0;font-size:13px;padding:36px 14px;line-height:1.8;}
-.menu-char{position:absolute;right:-14px;bottom:62px;width:42%;max-width:210px;z-index:21;pointer-events:none;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45));animation:bob 2.6s ease-in-out infinite;}
+.menu-char-inline{display:block;width:56%;max-width:230px;margin:12px auto 4px;pointer-events:none;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45));animation:bob 2.8s ease-in-out infinite;}
 .bottom-nav{position:absolute;left:0;right:0;bottom:0;z-index:22;display:flex;justify-content:space-around;align-items:center;padding:8px 8px max(env(safe-area-inset-bottom,0),10px);background:linear-gradient(180deg,rgba(40,20,75,.4),rgba(24,12,52,.92));border-top:1.5px solid rgba(255,210,150,.3);pointer-events:auto;}
 .nav-item{cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#bfa6e6;font-size:10px;font-weight:700;flex:1;}
 .nav-item .ic{font-size:21px;}
@@ -167,6 +167,12 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .set-row input[type=range]{flex:1;accent-color:#ff79c6;}
 .cal-ctrl{display:flex;align-items:center;gap:10px;}
 .cal-ctrl button{cursor:pointer;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:17px;}
+.toggle{cursor:pointer;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font-weight:800;font-size:12px;border-radius:20px;padding:6px 16px;min-width:58px;}
+.toggle.on{background:linear-gradient(90deg,#ffb347,#ff79c6);border-color:#ffe7a8;color:#3a1d00;}
+.set-note{font-size:10px;color:#bca6e0;margin:-10px 0 16px;text-align:left;line-height:1.5;}
+#stage.lite.fever{animation:none!important;}
+#stage.lite .bgstar{animation:none;opacity:.55;}
+#stage.lite .char,#stage.lite .menu-char-inline{animation:none;}
 #toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);z-index:60;background:rgba(40,22,80,.95);border:1px solid rgba(255,210,150,.5);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:24px;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.4);max-width:84%;text-align:center;}
 #toast.show{opacity:1;}
 #loading{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,10,45,.9);gap:14px;}
@@ -218,7 +224,6 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     </div>
     <div class="tabs" id="tabs"></div>
     <div class="song-list" id="songList"></div>
-    <img class="menu-char" id="menuCharImg" alt="">
     <div class="bottom-nav" id="bottomNav"></div>
   </div>
 
@@ -263,6 +268,9 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="settings-card"><h3>&#9881; せってい</h3>
       <div class="set-row"><span class="k">音量</span><input type="range" id="volRange" min="0" max="100" value="85"></div>
       <div class="set-row"><span class="k">音ズレ調整</span><div class="cal-ctrl"><button id="calMinus">&#8722;</button><span id="calVal">0 ms</span><button id="calPlus">&#65291;</button></div></div>
+      <div class="set-row"><span class="k">軽量モード</span><button class="toggle" id="liteToggle">OFF</button></div>
+      <div class="set-note">動作が重いときにON（発光や解像度を下げて軽くします）</div>
+      <div class="set-row"><span class="k">キャラを表示</span><button class="toggle on" id="charToggle">ON</button></div>
       <button class="btn" id="closeSettings" style="width:100%;padding:12px;">とじる</button>
     </div>
   </div>
