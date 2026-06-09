@@ -284,11 +284,12 @@ function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b
 /* ============ import mp3 ============ */
 const PASTELS=[['#ff9ad4','#9b6bff'],['#ff8fb0','#6fb0ff'],['#ffd6a0','#ff8fc0'],['#a0f0d0','#6fb0ff'],['#c9a0ff','#ff9ad4']];
 $('#importBtn').onclick=()=>$('#fileInput').click();
-$('#fileInput').onchange=(e)=>{ const files=[...e.target.files]; let added=0;
-  files.forEach((f)=>{ if(!f.type.startsWith('audio')&&!/\.(mp3|m4a|ogg|wav)$/i.test(f.name)) return;
+$('#fileInput').onchange=(e)=>{ const files=[...e.target.files]; let added=0, skipped=0;
+  files.forEach((f)=>{ const isAudio=(f.type&&f.type.startsWith('audio'))||/\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|3gp|webm)$/i.test(f.name);
+    if(!isAudio){ skipped++; return; }
     const id='local_'+Date.now()+'_'+added; const pc=PASTELS[added%PASTELS.length];
     sessionSongs.push({ id, title:f.name.replace(/\.[^.]+$/,''), artist:'インポート', sub:'', genres:['オリジナル'], isNew:false, c1:pc[0], c2:pc[1], icon:'\uD83C\uDFB6', file:f, chart:'auto' }); added++; });
-  e.target.value=''; if(added){ renderSongs(); toast(added+'曲を追加したよ（自動譜面）\u2728'); } else toast('音声ファイルを選んでね'); };
+  e.target.value=''; if(added){ renderSongs(); toast(added+'曲を追加したよ（自動譜面）\u2728'); } else toast(skipped? '音声ファイルではないみたい…' : '音声ファイルを選んでね'); };
 
 /* ============ bindings ============ */
 $('#startBtn').onclick=startGame;
