@@ -285,6 +285,7 @@ function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const B
   offsets.forEach(o=>{ let idx=Math.round((o/RANGE)*mid+mid); idx=Math.max(0,Math.min(BINS-1,idx)); bins[idx]++; });
   const mx=Math.max(1,...bins);
   bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
+function updateScrollHint(){ const b=$('#resultBody'),h=$('#scrollHint'); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
 function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); endFever(); stage.classList.remove('playing');
   const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
@@ -304,7 +305,7 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   $('#coinBreakdown').textContent=rew.total?rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('\u3000'):(G.failed?'クリアできなかった…コインなし':'');
   const JW=WIN.PERFECT; let late=0,just=0,early=0; G.offsets.forEach(o=>{ if(o>JW)early++; else if(o<-JW)late++; else just++; });
   const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
-  $('#resultScreen').classList.remove('hidden'); $('#resultBody').scrollTop=0;
+  $('#resultScreen').classList.remove('hidden'); $('#resultBody').scrollTop=0; setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450);
   countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
   countUp($('#resultScore'),G.score,1100); countUp($('#resHigh'),newHS,1100);
   countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
@@ -382,5 +383,6 @@ async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
 async function boot(){ loadPrefs(); CharStore.load(); resize(); buildStars();
   Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); requestAnimationFrame(loop);
+  const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }
 boot();
