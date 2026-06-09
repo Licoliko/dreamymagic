@@ -223,7 +223,7 @@ function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&25
 /* ============ input ============ */
 function laneFromX(clientX){ const r=stage.getBoundingClientRect(),x=clientX-r.left; let best=0,bd=1e9; for(let i=0;i<LANES;i++){const d=Math.abs(x-geo.botX[i]); if(d<bd){bd=d;best=i;}} return best; }
 const activeTouches={};
-stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]=lane; G.lanePressed[lane]=true; judgeTap(lane); } e.preventDefault(); },{passive:false});
+stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]=lane; G.lanePressed[lane]=true; judgeTap(lane); handled=true; } if(handled)e.preventDefault(); },{passive:false});
 stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const lane=activeTouches[tch.identifier]; if(lane!==undefined){ delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).includes(lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
 stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const l=activeTouches[tch.identifier]; if(l!==undefined){delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
 stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeTap(lane); });
@@ -346,8 +346,9 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
   buildHisto(G.offsets);
   setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
-function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); $('#pauseOverlay').classList.remove('hidden'); }
-function resumeGame(){ if(!G||!G.paused)return; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
+function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#9654;'; $('#pauseOverlay').classList.remove('hidden'); }
+function pauseToggle(){ if(!G||!G.started||G.ended)return; if(G.paused)resumeGame(); else pauseGame(); }
+function resumeGame(){ if(!G||!G.paused)return; const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#10074;&#10074;'; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); G.paused=false; AudioEngine.resume();} else showN(); },700); }
 function toSongSelect(){ AudioEngine.stop(); AudioEngine.stopPreview(); resetPreviewBtn(); if(G)G.ended=true; ctx.clearRect(0,0,W,H); stage.classList.remove('playing');
   $('#pauseOverlay').classList.add('hidden'); $('#resultScreen').classList.add('hidden'); $('#startScreen').classList.add('hidden');
@@ -417,8 +418,11 @@ $('#fileInput').onchange=(e)=>{ const files=[...e.target.files]; let added=0, sk
 /* ============ bindings ============ */
 $('#startBtn').onclick=startGame;
 $('#backToSongs').onclick=()=>{ AudioEngine.stopPreview(); resetPreviewBtn(); $('#startScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); };
-$('#pauseBtn').onclick=pauseGame;
+$('#pauseBtn').onclick=pauseToggle;
 $('#resumeBtn').onclick=resumeGame;
+$('#pauseOverlay').addEventListener('click',e=>{ if(e.target&&e.target.id==='pauseOverlay') resumeGame(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(G&&G.started&&!G.paused&&!G.ended) pauseGame(); try{AudioEngine.stopPreview();}catch(e){} } else { const c=AudioEngine.ctx; if(c&&c.state==='suspended'){ c.resume().catch(()=>{}); } } });
+window.addEventListener('pageshow',()=>{ const c=AudioEngine.ctx; if(c&&c.state==='suspended'){ c.resume().catch(()=>{}); } });
 $('#restartBtn').onclick=()=>{ $('#pauseOverlay').classList.add('hidden'); AudioEngine.stop(); startGame(); };
 $('#quitBtn').onclick=toSongSelect;
 $('#retryBtn').onclick=()=>{ $('#resultScreen').classList.add('hidden'); startGame(); };
