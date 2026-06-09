@@ -24,11 +24,11 @@ const NOTE_SKINS=[
   {id:'rune', name:'まほうじん', price:300, kind:'bar', sheet:'assets/notes/rune.webp'},
   {id:'potion', name:'ポーション', price:300, kind:'bar', sheet:'assets/notes/potion.webp'},
   {id:'element', name:'エレメント', price:300, kind:'bar', sheet:'assets/notes/element.webp'},
-  {id:'fish', name:'おさかな', price:300, kind:'icon', sheet:'assets/notes/fish.webp'},
-  {id:'fruit', name:'フルーツ', price:300, kind:'icon', sheet:'assets/notes/fruit.webp'},
-  {id:'cake', name:'スイーツ', price:300, kind:'icon', sheet:'assets/notes/cake.webp'},
+  {id:'sword', name:'つるぎ', price:300, kind:'bar', sheet:'assets/notes/sword.webp'},
+  {id:'book', name:'ブック', price:300, kind:'bar', sheet:'assets/notes/book.webp'},
+  {id:'wand', name:'ステッキ', price:300, kind:'bar', sheet:'assets/notes/wand.webp'},
 ];
-const NOTE_DEFAULT=['classic','energy','fish'];
+const NOTE_DEFAULT=['classic','energy','crystal'];
 function noteSkinById(id){ return NOTE_SKINS.find(s=>s.id===id)||NOTE_SKINS[0]; }
 const NoteStore={ owned:new Set(NOTE_DEFAULT), equipped:'classic',
   load(){ try{ const o=localStorage.getItem('pk_notes_owned'); if(o) JSON.parse(o).forEach(id=>this.owned.add(id)); const e=localStorage.getItem('pk_note_equip'); if(e&&NOTE_SKINS.some(s=>s.id===e)) this.equipped=e; }catch(e){} NOTE_DEFAULT.forEach(id=>this.owned.add(id)); },

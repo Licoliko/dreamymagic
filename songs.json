@@ -4,6 +4,46 @@
   },
   "songs": [
     {
+      "id": "aliceriot",
+      "title": "SHIBUYA ALICE RIOT",
+      "artist": "Alice in Shibuya",
+      "sub": "Live Version",
+      "genres": [
+        "ROCK",
+        "BAND",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#8fd3ff",
+      "c2": "#3b4db0",
+      "bpm": 180,
+      "duration": 180.395,
+      "audio": "songs/aliceriot/audio.mp3",
+      "chart": "songs/aliceriot/chart.json",
+      "jacket": "songs/aliceriot/jacket.webp",
+      "preview": 57.7
+    },
+    {
+      "id": "nitrobeat",
+      "title": "EXTREME NITRO BEAT",
+      "artist": "Nitro Pink",
+      "sub": "Extended Mix",
+      "genres": [
+        "EDM",
+        "DANCE",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ff79c6",
+      "c2": "#9b6bff",
+      "bpm": 161.5,
+      "duration": 150.229,
+      "audio": "songs/nitrobeat/audio.mp3",
+      "chart": "songs/nitrobeat/chart.json",
+      "jacket": "songs/nitrobeat/jacket.webp",
+      "preview": 48.1
+    },
+    {
       "id": "kirakira",
       "title": "Kira-Kira Magic",
       "artist": "Pastel Kingdom",
