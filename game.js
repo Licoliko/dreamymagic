@@ -3,7 +3,19 @@ const $ = s => document.querySelector(s);
 const stage=$('#stage'), canvas=$('#playfield'), ctx=canvas.getContext('2d');
 const LANES=4, LANE_KEYS=['d','f','j','k'];
 const LANE_COLORS=[{a:'#ff8fd0',b:'#ff4fb0'},{a:'#ffd96e',b:'#f5a623'},{a:'#7fc8ff',b:'#3d8bff'},{a:'#c19bff',b:'#8b5cff'}];
-const ASSET_CHAR='assets/char.webp', ASSET_AVA='assets/avatar.webp';
+const CHARACTERS=[
+  {id:'magic', name:'Magic\u266AP', img:'assets/char.webp', ava:'assets/avatar.webp', price:0, c1:'#7a4fb0', c2:'#34205e'},
+  {id:'stella', name:'Stella', img:'assets/char_stella.webp', ava:'assets/avatar_stella.webp', price:600, c1:'#b9a0e0', c2:'#4b337e'},
+  {id:'marine', name:'Marine', img:'assets/char_marine.webp', ava:'assets/avatar_marine.webp', price:600, c1:'#6f9fe0', c2:'#243069'},
+  {id:'citron', name:'Citron', img:'assets/char_citron.webp', ava:'assets/avatar_citron.webp', price:600, c1:'#c9d36a', c2:'#4f6f2a'},
+];
+function charById(id){ return CHARACTERS.find(c=>c.id===id)||CHARACTERS[0]; }
+const CharStore={ owned:new Set(['magic']), equipped:'magic',
+  load(){ try{ const o=localStorage.getItem('pk_owned'); if(o) JSON.parse(o).forEach(id=>this.owned.add(id)); const e=localStorage.getItem('pk_equip'); if(e&&CHARACTERS.some(c=>c.id===e)) this.equipped=e; }catch(e){} this.owned.add('magic'); },
+  save(){ try{ localStorage.setItem('pk_owned',JSON.stringify([...this.owned])); localStorage.setItem('pk_equip',this.equipped); }catch(e){} } };
+let CUR_CHAR_IMG='assets/char.webp', CUR_CHAR_AVA='assets/avatar.webp';
+function applyCharacter(){ const c=charById(CharStore.equipped); CUR_CHAR_IMG=c.img; CUR_CHAR_AVA=c.ava;
+  const ci=$('#charImg'); if(ci)ci.src=CUR_CHAR_IMG; const av=$('#avaImg'); if(av)av.src=CUR_CHAR_AVA; const rc=$('#resChar'); if(rc)rc.src=CUR_CHAR_IMG; const pn=$('#playerName'); if(pn)pn.textContent=c.name; renderSongs(); }
 let DPR=1,W=0,H=0,geo={};
 let LITE=false, SHOW_CHAR=true;
 
@@ -201,10 +213,10 @@ function gradJacket(id,c1,c2,icon){ return `<svg viewBox="0 0 100 100" xmlns="ht
 let MANIFEST_SONGS=[], sessionSongs=[];
 function allSongs(){ return MANIFEST_SONGS.concat(sessionSongs); }
 const TABS=[{k:'all',label:'すべて',ic:'\u266A'},{k:'POPS',label:'POPS',ic:'\u266B'},{k:'KAWAII',label:'KAWAII',ic:'\u2665'},{k:'BPM',label:'BPM',ic:'\u3030'},{k:'オリジナル',label:'オリジナル',ic:'\u265B'}];
-const NAV=[{k:'home',label:'ホーム',ic:'\uD83C\uDFF0'},{k:'music',label:'楽曲',ic:'\uD83C\uDFB5',sel:true},{k:'shop',label:'ショップ',ic:'\uD83D\uDECD\uFE0F'},{k:'gacha',label:'ガチャ',ic:'\uD83C\uDF81'}];
+const NAV=[{k:'home',label:'ホーム',ic:'\uD83C\uDFF0'},{k:'music',label:'楽曲',ic:'\uD83C\uDFB5',sel:true},{k:'shop',label:'ショップ',ic:'\uD83D\uDECD\uFE0F'}];
 let curTab='all', favOnly=false; const favorites=new Set();
 function buildTabs(){ const wrap=$('#tabs'); wrap.innerHTML=''; TABS.forEach(t=>{ const el=document.createElement('div'); el.className='tab'+(t.k===curTab?' sel':''); el.innerHTML=`<span class="ic">${t.ic}</span>${t.label}`; el.onclick=()=>{ curTab=t.k; buildTabs(); renderSongs(); }; wrap.appendChild(el); }); }
-function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(n=>{ const el=document.createElement('div'); el.className='nav-item'+(n.sel?' sel':''); el.innerHTML=`<span class="ic">${n.ic}</span>${n.label}`; el.onclick=()=>{ if(!n.sel) toast(n.label+'は準備中だよ \u2728'); }; wrap.appendChild(el); }); }
+function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(n=>{ const el=document.createElement('div'); el.className='nav-item'+(n.sel?' sel':''); el.innerHTML=`<span class="ic">${n.ic}</span>${n.label}`; el.onclick=()=>{ if(n.k==='shop') openShop(); else if(!n.sel) toast(n.label+'は準備中だよ \u2728'); }; wrap.appendChild(el); }); }
 function filteredSongs(){ let arr=allSongs().slice(); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
 function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=filteredSongs();
   if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「MP3を追加」から端末の曲を選んでね')+'</div>'; }
@@ -214,7 +226,7 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
     el.innerHTML=`<div class="jacket">${song.isNew?'<span class="new-badge">NEW</span>':''}${jacketSVG(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
     el.onclick=()=>openOptions(song); list.appendChild(el); });
-  if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=ASSET_CHAR; c.alt=''; list.appendChild(c); } }
+  if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=CUR_CHAR_IMG; c.alt=''; list.appendChild(c); } }
 
 /* ============ options ============ */
 async function openOptions(song){
@@ -285,7 +297,7 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   banner.textContent=G.failed?'FAILED':allPerfect?'ALL PERFECT':fullCombo?'FULL COMBO':'CLEARED';
   $('#fcBadge').classList.toggle('hidden', !(fullCombo||allPerfect));
   $('#resBubble').textContent=G.failed?'うぅ…つぎはきっとできるよ！':allPerfect?'やった〜！完璧だよっ！すごいすごーいっ☆':fullCombo?'ノーミス！その調子だよっ♪':(rank==='S'||rank==='SS')?'すごい！とっても上手っ✨':(rank==='A')?'いい感じ！その調子♪':'クリア！おつかれさまっ☆';
-  const rc=$('#resChar'); rc.src=ASSET_CHAR; rc.style.display=SHOW_CHAR?'':'none';
+  const rc=$('#resChar'); rc.src=CUR_CHAR_IMG; rc.style.display=SHOW_CHAR?'':'none';
   const prevHS=getHS(), isNew=!G.failed&&G.score>prevHS, newHS=Math.max(prevHS,G.score); if(isNew)setHS(G.score);
   $('#newRec').classList.toggle('hidden',!isNew);
   const rew=clearReward(); Wallet.add(rew.total);
@@ -312,6 +324,18 @@ let toastTimer=null;
 function toast(msg){ const el=$('#toast'); el.innerHTML=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1900); }
 function syncCal(){ $('#calVal').textContent=latencyMs+' ms'; }
 function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b=$('#pauseVol'); if(a)a.value=Math.round(v*100); if(b)b.value=Math.round(v*100); }
+function openShop(){ updateShopCoins(); renderShop(); $('#songSelectScreen').classList.add('hidden'); $('#shopScreen').classList.remove('hidden'); }
+function closeShop(){ $('#shopScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); }
+function updateShopCoins(){ const e=$('#shopCoinVal'); if(e)e.textContent=Wallet.coins.toLocaleString(); }
+function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
+  CHARACTERS.forEach(c=>{ const owned=CharStore.owned.has(c.id), eq=CharStore.equipped===c.id;
+    const card=document.createElement('div'); card.className='shop-card'+(eq?' equipped':'');
+    const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy">\uD83E\uDE99 '+c.price+'</button>';
+    card.innerHTML='<div class="shop-portrait" style="background:linear-gradient(160deg,'+c.c1+','+c.c2+')"><img src="'+c.img+'" alt=""></div><div class="shop-name">'+c.name+'</div>'+btn;
+    const b=card.querySelector('.shop-btn');
+    if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
+    else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
+    grid.appendChild(card); }); }
 function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); }catch(e){} }
 function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
 function applyChar(){ const b=$('#charToggle'); if(b){b.textContent=SHOW_CHAR?'ON':'OFF'; b.classList.toggle('on',SHOW_CHAR);} const ci=$('#charImg'); if(ci)ci.style.display=SHOW_CHAR?'':'none'; renderSongs(); }
@@ -348,13 +372,15 @@ $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
 $('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
 $('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
+$('#profileBtn').onclick=openShop;
+$('#shopBack').onclick=closeShop;
 
 function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ const s=document.createElement('div'); s.className='bgstar'; s.textContent=Math.random()<.5?'\u2726':'\u2727'; s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.fontSize=(8+Math.random()*16)+'px'; s.style.animationDelay=(Math.random()*2.6)+'s'; layer.appendChild(s); }
   for(let i=0;i<4;i++){ const m=document.createElement('div'); m.className='macaron'; m.style.left=Math.random()*86+'%'; m.style.top=(Math.random()*55)+'%'; m.style.transform=`scale(${0.7+Math.random()*0.8})`; layer.appendChild(m); } }
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
-    if(data.player&&data.player.name) $('#playerName').textContent=data.player.name; MANIFEST_SONGS=data.songs||[]; }
+    MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
-async function boot(){ loadPrefs(); resize(); buildStars(); $('#charImg').src=ASSET_CHAR; $('#avaImg').src=ASSET_AVA;
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); requestAnimationFrame(loop);
+async function boot(){ loadPrefs(); CharStore.load(); resize(); buildStars();
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); requestAnimationFrame(loop);
   await loadManifest(); renderSongs(); }
 boot();

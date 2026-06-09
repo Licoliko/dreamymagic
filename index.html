@@ -97,12 +97,12 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .pill-btn{pointer-events:auto;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;color:#fff;background:rgba(60,32,110,.55);border:1.5px solid rgba(255,210,150,.4);border-radius:20px;padding:7px 14px;}
 .pill-btn.on{background:linear-gradient(90deg,#ffb347,#ff79c6);border-color:#ffe7a8;color:#3a1d00;}
 .pill-btn .ic{color:var(--gold);} .pill-btn.on .ic{color:#5a2e00;}
-.tabs{display:flex;gap:8px;width:100%;padding:6px 16px 10px;overflow-x:auto;pointer-events:auto;-webkit-overflow-scrolling:touch;}
+.tabs{display:flex;gap:8px;width:100%;padding:6px 16px 10px;overflow-x:auto;pointer-events:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
 .tab{flex:none;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#e8d6ff;background:rgba(70,38,128,.45);border:1.5px solid rgba(255,255,255,.14);border-radius:22px;padding:8px 15px;}
 .tab .ic{font-size:13px;color:#cdb6f0;}
 .tab.sel{background:linear-gradient(90deg,#b06bff,#ff79c6);border-color:#ffe7a8;color:#fff;box-shadow:0 4px 12px rgba(180,90,255,.4);}
 .tab.sel .ic{color:#fff;}
-.song-list{width:100%;flex:1;overflow-y:auto;padding:4px 14px 150px;display:flex;flex-direction:column;gap:13px;-webkit-overflow-scrolling:touch;pointer-events:auto;}
+.song-list{width:100%;flex:1;overflow-y:auto;padding:4px 14px 150px;display:flex;flex-direction:column;gap:13px;-webkit-overflow-scrolling:touch;touch-action:pan-y;pointer-events:auto;}
 .song-item{position:relative;cursor:pointer;display:flex;gap:13px;align-items:center;padding:11px;border-radius:18px;background:linear-gradient(150deg,rgba(98,60,160,.4),rgba(48,26,92,.55));border:1.5px solid rgba(255,210,150,.28);box-shadow:0 5px 16px rgba(0,0,0,.32),inset 0 0 18px rgba(255,200,255,.06);transition:.15s;}
 .song-item:active{transform:scale(.985);}
 .song-item.new{border-color:rgba(255,210,150,.7);box-shadow:0 0 0 1.5px rgba(255,220,150,.5),0 6px 20px rgba(255,180,90,.25);}
@@ -124,6 +124,23 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .nav-item .ic{font-size:21px;}
 .nav-item.sel{color:#fff;}
 .nav-item.sel .ic{filter:drop-shadow(0 0 8px rgba(255,200,120,.9));}
+.pf-card{cursor:pointer;}
+#shopScreen{justify-content:flex-start;padding:0;background:linear-gradient(180deg,rgba(20,10,45,.55) 0%,rgba(22,11,50,.9) 40%,rgba(16,8,40,.97) 100%);}
+.shop-head{display:flex;justify-content:space-between;align-items:center;width:100%;padding:max(env(safe-area-inset-top,0),14px) 16px 0;pointer-events:auto;}
+.shop-coins{display:flex;gap:6px;align-items:center;font-weight:800;font-size:14px;background:rgba(40,22,78,.6);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:6px 14px;}
+.shop-title{display:flex;flex-direction:column;align-items:center;margin:8px 0 10px;}
+.shop-title h1{font-family:'Cinzel',serif;font-weight:700;font-size:32px;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffe9c0 55%,#f0c062);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(120,60,160,.5));}
+.shop-title .sub{font-size:11px;color:#ffe7a8;letter-spacing:.18em;margin-top:4px;}
+.shop-grid{width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 16px 24px;pointer-events:auto;}
+.shop-card{background:linear-gradient(160deg,rgba(80,46,140,.45),rgba(40,22,82,.6));border:1.5px solid rgba(255,210,150,.3);border-radius:18px;padding:11px;display:flex;flex-direction:column;align-items:center;gap:9px;box-shadow:0 5px 16px rgba(0,0,0,.3),inset 0 0 18px rgba(255,200,255,.05);}
+.shop-card.equipped{border-color:#ffe7a8;box-shadow:0 0 0 1.5px rgba(255,220,150,.6),0 6px 18px rgba(255,200,90,.25);}
+.shop-portrait{width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18);}
+.shop-portrait img{width:98%;height:98%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));}
+.shop-name{font-family:'Mochiy Pop One';font-size:15px;}
+.shop-btn{cursor:pointer;width:100%;border:none;border-radius:13px;padding:9px;font-weight:800;font-size:13px;font-family:'Mochiy Pop One';}
+.shop-btn.buy{background:linear-gradient(90deg,#ffd24a,#ffb347);color:#5a2e00;}
+.shop-btn.select{background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.32);}
+.shop-btn.equipped{background:linear-gradient(90deg,#b06bff,#ff79c6);color:#fff;opacity:.95;}
 #startScreen{background:radial-gradient(120% 90% at 50% 30%,rgba(40,20,75,.4),rgba(16,8,40,.92));}
 .opt-jacket{width:104px;height:104px;border-radius:20px;overflow:hidden;margin-bottom:12px;box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.2);}
 .opt-jacket svg{width:100%;height:100%;}
@@ -144,7 +161,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 @keyframes cdown{0%{opacity:0;transform:scale(2)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.7)}}
 #resultScreen{padding:0;justify-content:flex-start;background:radial-gradient(130% 80% at 70% 12%,rgba(120,70,170,.6),rgba(40,20,75,.7) 45%,rgba(16,8,40,.97));}
 #resultScreen::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 72% 22%,rgba(255,210,255,.12),transparent 70%);pointer-events:none;}
-.result-body{position:relative;z-index:1;width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(env(safe-area-inset-top,0),14px) 16px 18px;}
+.result-body{position:relative;z-index:1;width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:max(env(safe-area-inset-top,0),14px) 16px 18px;}
 .res-head{display:flex;align-items:center;justify-content:space-between;}
 .res-title{font-family:'Cinzel',serif;font-weight:700;font-size:42px;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffd8f0 50%,#ffb0e6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(255,150,230,.6));animation:resFade .5s ease both;}
 .share-btn{pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;font-weight:700;color:#ffe7a8;background:rgba(60,32,110,.6);border:1.5px solid rgba(255,210,150,.5);border-radius:14px;padding:7px 12px;}
@@ -262,7 +279,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 
   <div id="songSelectScreen" class="screen">
     <div class="profile-bar">
-      <div class="pf-card"><img class="ava" id="avaImg" alt=""><div class="pf-info"><div class="pf-name" id="playerName">Magic&#9834;P</div><div class="pf-exp"><i></i></div></div></div>
+      <div class="pf-card" id="profileBtn"><img class="ava" id="avaImg" alt=""><div class="pf-info"><div class="pf-name" id="playerName">Magic&#9834;P</div><div class="pf-exp"><i></i></div></div></div>
       <div class="curr"><div class="coin-pill"><span class="ic">&#129689;</span><span id="coinVal">200</span></div><button id="gearBtn">&#9881;</button></div>
     </div>
     <div class="ss-title-row">
@@ -275,6 +292,12 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="tabs" id="tabs"></div>
     <div class="song-list" id="songList"></div>
     <div class="bottom-nav" id="bottomNav"></div>
+  </div>
+
+  <div id="shopScreen" class="screen hidden">
+    <div class="shop-head"><div class="back-link" id="shopBack" style="position:static">&#8592; もどる</div><div class="shop-coins"><span>&#129689;</span><span id="shopCoinVal">200</span></div></div>
+    <div class="shop-title"><span class="crown">&#9819;</span><h1>SHOP</h1><div class="sub">キャラクター</div></div>
+    <div class="shop-grid" id="shopGrid"></div>
   </div>
 
   <div id="startScreen" class="screen hidden">
