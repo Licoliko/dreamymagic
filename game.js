@@ -37,7 +37,7 @@ const noteImgs={}; let CUR_NOTE=NOTE_SKINS[0];
 function loadNoteSkin(skin){ if(!skin||skin.kind==='draw'||noteImgs[skin.id])return; const img=new Image(); const rec={img,ready:false,aspect:1}; noteImgs[skin.id]=rec; img.onload=()=>{ rec.ready=true; rec.aspect=img.naturalHeight/(img.naturalWidth/4); }; img.src=skin.sheet; }
 function applyNoteSkin(){ CUR_NOTE=noteSkinById(NoteStore.equipped); loadNoteSkin(CUR_NOTE); }
 let DPR=1,W=0,H=0,geo={};
-let LITE=false, SHOW_CHAR=true;
+let LITE=false, SHOW_CHAR=true, noteSpeed=1.0;
 
 function resize(){ const r=stage.getBoundingClientRect(); DPR=Math.min(window.devicePixelRatio||1, LITE?1:2); W=r.width; H=r.height;
   canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); computeGeo(); }
@@ -55,7 +55,7 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,
+  previewSrc:null,previewing:false,sfx:true,_noise:null,
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
   async ensure(song){
@@ -87,7 +87,20 @@ const AudioEngine={
     g.gain.setValueAtTime(Math.max(0.0002,this.vol),now+len-0.6); g.gain.exponentialRampToValueAtTime(0.0001,now+len);
     s.start(now,from,len); this.previewSrc=s; this.previewing=true;
     s.onended=()=>{ if(this.previewSrc===s){ this.previewing=false; this.previewSrc=null; onPreviewEnded(); } }; },
-  stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; }
+  stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; },
+  hit(j){ if(!this.sfx) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol;
+    const f = j==='PERFECT'?1760 : j==='GREAT'?1480 : 1175;
+    const o1=ctx.createOscillator(), g1=ctx.createGain(); o1.type='triangle'; o1.frequency.value=f;
+    g1.gain.setValueAtTime(0.0001,t); g1.gain.exponentialRampToValueAtTime(0.16*vol,t+0.005); g1.gain.exponentialRampToValueAtTime(0.0008,t+0.16);
+    o1.connect(g1).connect(this.gain); o1.start(t); o1.stop(t+0.18);
+    const o2=ctx.createOscillator(), g2=ctx.createGain(); o2.type='sine'; o2.frequency.value=f*2;
+    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime(0.07*vol,t+0.004); g2.gain.exponentialRampToValueAtTime(0.0006,t+0.12);
+    o2.connect(g2).connect(this.gain); o2.start(t); o2.stop(t+0.14);
+    if(!this._noise){ const n=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.2),ctx.sampleRate); const d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this._noise=n; }
+    const ns=ctx.createBufferSource(); ns.buffer=this._noise; const bp=ctx.createBiquadFilter(); bp.type='highpass'; bp.frequency.value=5200;
+    const gn=ctx.createGain(); gn.gain.setValueAtTime(0.0001,t); gn.gain.exponentialRampToValueAtTime(0.11*vol,t+0.004); gn.gain.exponentialRampToValueAtTime(0.0005,t+0.09);
+    ns.connect(bp).connect(gn).connect(this.gain); ns.start(t); ns.stop(t+0.1);
+  }catch(e){} }
 };
 
 /* ============ in-browser auto chart (time-domain) ============ */
@@ -123,7 +136,8 @@ const AutoChart={
         for(const o of onsets){ if(o.s<strThr) continue; if(o.t-lt<minGap) continue; let lane=laneOf(o.z);
           if(o.t-ll[lane]<minGap*1.2){ let bl=0,bd=-9; for(let L=0;L<4;L++){ if(o.t-ll[L]>bd){bd=o.t-ll[L];bl=L;} } lane=bl; }
           notes.push({t:+o.t.toFixed(3),lane,hold:0}); lt=o.t; ll[lane]=o.t; } return notes; };
-      const charts={ EASY:{lv:3,notes:build(0.34,sp(.6))}, NORMAL:{lv:5,notes:build(0.22,sp(.35))}, HARD:{lv:8,notes:build(0.13,sp(.12))} };
+      const addFlicks=(notes,prob)=>{ for(const n of notes){ if(!n.hold && Math.random()<prob) n.flick=['up','up','up','left','right'][Math.floor(Math.random()*5)]; } return notes; };
+      const charts={ EASY:{lv:3,notes:build(0.34,sp(.6))}, NORMAL:{lv:5,notes:build(0.22,sp(.35))}, HARD:{lv:8,notes:addFlicks(build(0.13,sp(.12)),0.10)}, VERYHARD:{lv:11,notes:addFlicks(build(0.10,sp(.04)),0.16)} };
       return {bpm:this.estimateBpm(flux,secPerF)||120, duration:+dur.toFixed(3), lanes:4, charts};
     }catch(e){ console.error('autochart',e); return this.metronome(buf.duration||120); }
   },
@@ -132,27 +146,34 @@ const AutoChart={
     for(let lag=minLag;lag<=maxLag;lag++){ let s=0; for(let i=0;i+lag<flux.length;i++) s+=flux[i]*flux[i+lag]; if(s>best){best=s;bestLag=lag;} }
     return bestLag? Math.round(60/(bestLag*secPerF)):0; },
   metronome(dur){ const mk=gap=>{ const n=[]; for(let t=1.5,i=0;t<dur-1;t+=gap,i++) n.push({t:+t.toFixed(3),lane:i%4,hold:0}); return n; };
-    return {bpm:120,duration:+(+dur).toFixed(3),lanes:4,charts:{EASY:{lv:3,notes:mk(0.8)},NORMAL:{lv:5,notes:mk(0.5)},HARD:{lv:8,notes:mk(0.3)}}}; }
+    return {bpm:120,duration:+(+dur).toFixed(3),lanes:4,charts:{EASY:{lv:3,notes:mk(0.8)},NORMAL:{lv:5,notes:mk(0.5)},HARD:{lv:8,notes:mk(0.3)},VERYHARD:{lv:11,notes:mk(0.22)}}}; }
 };
 
 /* ============ game state ============ */
 let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85;
+const DIFF_NAMES={EASY:'EASY',NORMAL:'NORMAL',HARD:'HARD',VERYHARD:'VERY HARD'};
 const LENGTHS={'30':{sec:30,label:'30秒'}, '60':{sec:60,label:'1分'}, 'FULL':{sec:Infinity,label:'フル'}};
 function curLimit(){ return Math.min(LENGTHS[lengthKey].sec, selectedSong.duration); }
 function chartOf(song){ return song._chart.charts[diffKey]; }
 
 function newGame(){ const limit=curLimit(), src=chartOf(selectedSong).notes;
-  const notes=src.filter(n=>n.t<=limit-0.3).map((n,i)=>({id:i,t:n.t,lane:n.lane,hold:(n.hold&&n.t+n.hold<=limit-0.1)?n.hold:0,state:'idle',headJudged:false}));
+  const notes=src.filter(n=>n.t<=limit-0.3).map((n,i)=>({id:i,t:n.t,lane:n.lane,hold:(n.hold&&n.t+n.hold<=limit-0.1)?n.hold:0,flick:n.flick||0,state:'idle',headJudged:false}));
   G={ notes, limit, totalNotes:notes.length, score:0,displayScore:0,combo:0,maxCombo:0,life:1000,fever:0,feverActive:false,feverEnd:0,
     counts:{PERFECT:0,GREAT:0,GOOD:0,MISS:0},accWeight:0,accCount:0,offsets:[],
-    travel: diffKey==='HARD'?1.35:diffKey==='NORMAL'?1.55:1.8,
+    travel: (diffKey==='VERYHARD'?1.2:diffKey==='HARD'?1.35:diffKey==='NORMAL'?1.55:1.8)/noteSpeed,
     laneFlash:[0,0,0,0],lanePressed:[false,false,false,false],particles:[], started:false,paused:false,ended:false,failed:false }; }
 const WIN={PERFECT:0.055,GREAT:0.11,GOOD:0.16}, PTS={PERFECT:1000,GREAT:600,GOOD:300,MISS:0};
 function songTime(){ return AudioEngine.time()+AudioEngine.offset; }
 
-function judgeTap(lane){ if(!G||!G.started||G.ended) return; const t=songTime(); let best=null,bd=999;
-  for(const n of G.notes){ if(n.lane!==lane||n.state==='done'||n.state==='miss'||n.headJudged) continue; const dt=Math.abs(n.t-t); if(dt<bd){bd=dt;best=n;} }
-  if(best&&bd<=WIN.GOOD){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; best.headJudged=true; G.offsets.push(best.t-t); applyJudge(j,best.lane); best.state=best.hold>0?'holding':'done'; triggerHit(best.lane,j); } }
+function pickNote(lane,kind){ const t=songTime(); let best=null,bd=999;
+  for(const n of G.notes){ if(n.lane!==lane||n.state==='done'||n.state==='miss'||n.headJudged) continue;
+    if(kind==='tap'&&n.flick) continue; if(kind==='flick'&&!n.flick) continue;
+    const dt=Math.abs(n.t-t); if(dt<bd){bd=dt;best=n;} }
+  return {best,bd}; }
+function judgeHit(n,bd,t){ const j=bd<=WIN.PERFECT?'PERFECT':bd<=WIN.GREAT?'GREAT':'GOOD'; n.headJudged=true; G.offsets.push(n.t-t); applyJudge(j,n.lane); n.state=n.hold>0?'holding':'done'; triggerHit(n.lane,j); }
+function judgeTap(lane){ if(!G||!G.started||G.paused||G.ended) return; const t=songTime(); const {best,bd}=pickNote(lane,'tap'); if(best&&bd<=WIN.GOOD) judgeHit(best,bd,t); }
+function judgeFlick(lane,dir){ if(!G||!G.started||G.paused||G.ended) return; const t=songTime(); const {best,bd}=pickNote(lane,'flick'); if(best&&bd<=WIN.GOOD){ if(dir&&best.flick&&dir!==best.flick) return; judgeHit(best,bd,t); } }
+function judgeAny(lane){ if(!G||!G.started||G.paused||G.ended) return; const t=songTime(); const {best,bd}=pickNote(lane,'any'); if(best&&bd<=WIN.GOOD) judgeHit(best,bd,t); }
 function releaseLane(lane){ if(!G||!G.started||G.paused||G.ended) return; const t=songTime();
   for(const n of G.notes){ if(n.lane!==lane||n.state!=='holding') continue; const tail=n.t+n.hold;
     if(t < tail-WIN.GOOD){ n.state='miss'; applyJudge('MISS',n.lane); }
@@ -165,7 +186,7 @@ function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PER
   showJudge(j); updateHUD(); }
 function activateFever(){ G.feverActive=true; G.feverEnd=songTime()+7; stage.classList.add('fever'); const fb=$('#feverBanner'); fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show'); $('#feverWrap').classList.add('ready'); }
 function endFever(){ G.feverActive=false; G.fever=0; stage.classList.remove('fever'); $('#feverWrap').classList.remove('ready'); }
-function triggerHit(lane,j){ G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
+function triggerHit(lane,j){ AudioEngine.hit(j); G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5; G.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,col:col.a,size:2+Math.random()*3}); } }
 
 let scoreAddTimer=null;
@@ -197,11 +218,12 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
   for(let i=0;i<LANES;i++) drawCircle(botX[i],hitY,geo.laneW*0.34,LANE_COLORS[i],Math.max(G.laneFlash[i],G.lanePressed[i]?0.4:0.15));
   const travel=G.travel;
   for(const n of G.notes){ if(n.state==='done'||n.state==='miss') continue; const dt=n.t-t;
-    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=clamp(1-dt/travel,0,1.15), pTail=clamp(1-tailDt/travel,0,1.15); if(pTail>0&&pHead<1.15) drawHoldBody(n.lane,Math.min(pHead,1),Math.min(pTail,1)); }
-    if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n.lane,clamp(1-dt/travel,0,1)); }
+    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=clamp(1-dt/travel,0,1), pTail=clamp(1-tailDt/travel,0,1); if(pTail>0.001) drawHoldBody(n.lane,pHead,pTail,n.state==='holding'); }
+    if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n,clamp(1-dt/travel,0,1)); }
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
-function drawNote(lane,p){ const {x,y,scale}=lanePos(lane,p); const c=LANE_COLORS[lane];
+function drawNote(n,p){ const lane=n.lane; const {x,y,scale}=lanePos(lane,p); const c=LANE_COLORS[lane];
+  if(n.flick){ drawFlick(x,y,scale,c,n.flick); return; }
   const sk=CUR_NOTE, rec=sk&&sk.kind!=='draw'?noteImgs[sk.id]:null;
   if(rec&&rec.ready){ const cw=rec.img.naturalWidth/4, ch=rec.img.naturalHeight; let w,h;
     if(sk.kind==='bar'){ w=geo.noteBaseW*scale*1.2; h=w*rec.aspect; } else { h=geo.laneW*scale*0.96; w=h*(cw/ch); }
@@ -211,8 +233,20 @@ function drawNote(lane,p){ const {x,y,scale}=lanePos(lane,p); const c=LANE_COLOR
   const w=geo.noteBaseW*scale,h=18*scale;
   ctx.save(); ctx.translate(x,y); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=16*scale;} const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.35,c.a); g.addColorStop(1,c.b);
   roundRect(-w/2,-h/2,w,h,h/2); ctx.fillStyle=g; ctx.fill(); ctx.globalAlpha=.9; ctx.fillStyle='rgba(255,255,255,.85)'; roundRect(-w/2+w*0.12,-h/2+2*scale,w*0.76,3*scale,2); ctx.fill(); ctx.restore(); }
-function drawHoldBody(lane,pHead,pTail){ const a=lanePos(lane,pTail),b=lanePos(lane,pHead),c=LANE_COLORS[lane]; ctx.save(); ctx.beginPath(); const wa=geo.noteBaseW*a.scale*0.6,wb=geo.noteBaseW*b.scale*0.6;
-  ctx.moveTo(a.x-wa/2,a.y); ctx.lineTo(a.x+wa/2,a.y); ctx.lineTo(b.x+wb/2,b.y); ctx.lineTo(b.x-wb/2,b.y); ctx.closePath(); ctx.fillStyle=hexA(c.a,0.45); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=12;} ctx.fill(); ctx.restore(); }
+function drawHoldBody(lane,pHead,pTail,holding){ const a=lanePos(lane,pTail),b=lanePos(lane,pHead),c=LANE_COLORS[lane]; const wa=geo.noteBaseW*a.scale*0.55,wb=geo.noteBaseW*b.scale*0.55; ctx.save();
+  ctx.beginPath(); ctx.moveTo(a.x-wa/2,a.y); ctx.lineTo(a.x+wa/2,a.y); ctx.lineTo(b.x+wb/2,b.y); ctx.lineTo(b.x-wb/2,b.y); ctx.closePath();
+  const grd=ctx.createLinearGradient(a.x,a.y,b.x,b.y); grd.addColorStop(0,hexA(c.a,holding?0.8:0.55)); grd.addColorStop(1,hexA(c.b,holding?0.9:0.62));
+  if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=holding?16:10;} ctx.fillStyle=grd; ctx.fill();
+  ctx.shadowBlur=0; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.lineWidth=Math.max(2,wb*0.22); ctx.strokeStyle=hexA('#ffffff',holding?0.85:0.5); ctx.stroke(); ctx.restore();
+  drawHoldCap(a.x,a.y,wa,c,holding); if(holding) drawHoldCap(b.x,b.y,wb*1.1,c,true); }
+function drawHoldCap(x,y,w,c,bright){ ctx.save(); ctx.translate(x,y); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=bright?14:8;} const h=Math.max(8,w*0.42); const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.5,c.a); g.addColorStop(1,c.b); roundRect(-w*0.6,-h/2,w*1.2,h,h/2); ctx.fillStyle=g; ctx.fill(); ctx.restore(); }
+function drawFlick(x,y,scale,c,dir){ const s=geo.laneW*scale*0.5; ctx.save(); ctx.translate(x,y);
+  if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=14*scale;} const g=ctx.createLinearGradient(0,-s,0,s); g.addColorStop(0,'#ffffff'); g.addColorStop(.4,c.a); g.addColorStop(1,c.b);
+  roundRect(-s,-s,s*2,s*2,s*0.5); ctx.fillStyle=g; ctx.fill(); ctx.shadowBlur=0;
+  ctx.rotate(dir==='up'?0:dir==='down'?Math.PI:dir==='left'?-Math.PI/2:Math.PI/2);
+  ctx.strokeStyle='rgba(255,255,255,0.96)'; ctx.lineWidth=Math.max(2.5,s*0.32); ctx.lineCap='round'; ctx.lineJoin='round'; const aw=s*0.62, ah=s*0.5;
+  ctx.beginPath(); ctx.moveTo(-aw,ah*0.30); ctx.lineTo(0,-ah*0.7); ctx.lineTo(aw,ah*0.30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-aw,ah*0.95); ctx.lineTo(0,-ah*0.05); ctx.lineTo(aw,ah*0.95); ctx.stroke(); ctx.restore(); }
 function drawCircle(x,y,r,c,intensity){ ctx.save(); ctx.translate(x,y); ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.strokeStyle=hexA(c.a,0.5+intensity*0.5); ctx.lineWidth=2; ctx.stroke();
   ctx.beginPath(); ctx.arc(0,0,r*0.7,0,7); ctx.strokeStyle=hexA(c.b,0.4); ctx.lineWidth=1.4; ctx.stroke(); ctx.rotate(Math.PI/4); const s=r*0.38*(1+intensity*0.4); const g=ctx.createLinearGradient(-s,-s,s,s); g.addColorStop(0,'#fff'); g.addColorStop(1,c.a);
   ctx.shadowColor=c.a; if(!LITE)ctx.shadowBlur=14+intensity*22; ctx.fillStyle=g; ctx.fillRect(-s/2,-s/2,s,s); ctx.restore(); }
@@ -223,12 +257,13 @@ function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&25
 /* ============ input ============ */
 function laneFromX(clientX){ const r=stage.getBoundingClientRect(),x=clientX-r.left; let best=0,bd=1e9; for(let i=0;i<LANES;i++){const d=Math.abs(x-geo.botX[i]); if(d<bd){bd=d;best=i;}} return best; }
 const activeTouches={};
-stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]=lane; G.lanePressed[lane]=true; judgeTap(lane); handled=true; } if(handled)e.preventDefault(); },{passive:false});
-stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const lane=activeTouches[tch.identifier]; if(lane!==undefined){ delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).includes(lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
-stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const l=activeTouches[tch.identifier]; if(l!==undefined){delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
-stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeTap(lane); });
+stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]={lane,x0:tch.clientX,y0:tch.clientY,flicked:false}; G.lanePressed[lane]=true; judgeTap(lane); handled=true; } if(handled)e.preventDefault(); },{passive:false});
+stage.addEventListener('touchmove',e=>{ if(!G||!G.started||G.paused||G.ended)return; for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(!o||o.flicked)continue; const dx=tch.clientX-o.x0, dy=tch.clientY-o.y0, ax=Math.abs(dx), ay=Math.abs(dy); if(Math.max(ax,ay)<24)continue; const dir=ay>=ax?(dy<0?'up':'down'):(dx<0?'left':'right'); o.flicked=true; judgeFlick(o.lane,dir); } e.preventDefault(); },{passive:false});
+stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const lane=o.lane; delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).some(v=>v.lane===lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
+stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const l=o.lane; delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
+stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeAny(lane); });
 window.addEventListener('mouseup',()=>{ if(G){ for(let l=0;l<LANES;l++) releaseLane(l); G.lanePressed=[false,false,false,false]; } });
-window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeTap(lane); } });
+window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeAny(lane); } });
 window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G){ G.lanePressed[lane]=false; releaseLane(lane); } });
 
 /* ============ jacket art ============ */
@@ -278,8 +313,8 @@ async function loadSongData(song){ await AudioEngine.ensure(song);
   if(!song._chart){ if(song.chart && song.chart!=='auto'){ const res=await fetch(song.chart); if(!res.ok) throw new Error('chart fetch'); song._chart=await res.json(); }
     else { song._chart=AutoChart.generate(AudioEngine.buffer); } }
   if(!song.bpm) song.bpm=song._chart.bpm; song.duration=song._chart.duration||song.duration||AudioEngine.buffer.duration; }
-function buildDiffSelect(){ const wrap=$('#diffSelect'); wrap.innerHTML=''; ['EASY','NORMAL','HARD'].forEach(key=>{ const c=selectedSong._chart.charts[key]; const d=document.createElement('div'); d.className='opt-pill'+(key===diffKey?' sel':'');
-  d.innerHTML=`<div class="pn">${key}</div><div class="pd">${c.notes.length} notes</div>`; d.onclick=()=>{ diffKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); }; wrap.appendChild(d); }); }
+function buildDiffSelect(){ const wrap=$('#diffSelect'); wrap.innerHTML=''; ['EASY','NORMAL','HARD','VERYHARD'].forEach(key=>{ const c=selectedSong._chart.charts[key]; if(!c) return; const d=document.createElement('div'); d.className='opt-pill'+(key===diffKey?' sel':'');
+  d.innerHTML=`<div class="pn">${DIFF_NAMES[key]}</div><div class="pd">${c.notes.length} notes</div>`; d.onclick=()=>{ diffKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); }; wrap.appendChild(d); }); }
 function buildLengthSelect(){ const wrap=$('#lengthSelect'); wrap.innerHTML=''; ['30','60','FULL'].forEach(key=>{ const meta=LENGTHS[key]; const dur=Math.min(meta.sec,selectedSong.duration); const d=document.createElement('div'); d.className='opt-pill'+(key===lengthKey?' sel':'');
   d.innerHTML=`<div class="pn">${meta.label}</div><div class="pd">${key==='FULL'?fmt(selectedSong.duration):fmt(dur)}</div>`; d.onclick=()=>{ lengthKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); }; wrap.appendChild(d); }); }
 
@@ -291,7 +326,7 @@ $('#previewBtn').onclick=async()=>{ const b=$('#previewBtn'); if(AudioEngine.pre
   try{ await AudioEngine.startPreview(selectedSong); }catch(e){ console.error(e); resetPreviewBtn(); toast('視聴できませんでした'); } };
 
 /* ============ flow ============ */
-function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#cardSub').textContent=selectedSong.artist||''; $('#diffBadge').textContent=diffKey; $('#lenBadge').textContent=LENGTHS[lengthKey].label; $('#lvLabel').textContent=chartOf(selectedSong).notes.length+' notes'; }
+function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#cardSub').textContent=selectedSong.artist||''; $('#diffBadge').textContent=DIFF_NAMES[diffKey]||diffKey; $('#lenBadge').textContent=LENGTHS[lengthKey].label; $('#lvLabel').textContent=chartOf(selectedSong).notes.length+' notes'; }
 async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
   $('#startScreen').classList.add('hidden'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
   try{ await loadSongData(selectedSong); }catch(e){ console.error(e); $('#loadingText').textContent='読み込み失敗。戻ってもう一度お試しください。'; return; }
@@ -301,7 +336,7 @@ async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
 function reallyStart(){ G.started=true; G.paused=false; G.ended=false; AudioEngine.play(0); updateHUD(); }
 function onSrcEnded(){ if(G&&!G.ended&&songTime()>=G.limit-0.4) endGame(); }
 function clearReward(){ if(G.failed) return {total:0,parts:[]};
-  const lenF=lengthKey==='30'?0.5:lengthKey==='60'?0.75:1.0; const base=Math.round({EASY:30,NORMAL:50,HARD:80}[diffKey]*lenF);
+  const lenF=lengthKey==='30'?0.5:lengthKey==='60'?0.75:1.0; const base=Math.round({EASY:30,NORMAL:50,HARD:80,VERYHARD:110}[diffKey]*lenF);
   const acc=G.accCount?G.accWeight/G.accCount:0; const rankB=acc>=0.95?200:acc>=0.90?120:acc>=0.80?70:acc>=0.68?40:acc>=0.5?20:0;
   const scoreB=Math.floor(G.score/20000)*10; const fc=(G.counts.MISS===0&&G.totalNotes>0)?50:0;
   const parts=[['クリア',base],['ランク',rankB],['スコア',scoreB]]; if(fc)parts.push(['フルコンボ',fc]);
@@ -364,7 +399,7 @@ let rebindLane=-1;
 function loadKeys(){ try{ const k=localStorage.getItem('pk_keys'); if(k){ const arr=JSON.parse(k); if(Array.isArray(arr)&&arr.length===4) LANE_KEYS=arr.map(x=>String(x).toLowerCase()); } }catch(e){} }
 function saveKeys(){ try{ localStorage.setItem('pk_keys',JSON.stringify(LANE_KEYS)); }catch(e){} }
 function keyLabel(k){ if(k===' '||k==='spacebar'||k==='space')return 'Space'; if(k==='arrowleft')return '\u2190'; if(k==='arrowright')return '\u2192'; if(k==='arrowup')return '\u2191'; if(k==='arrowdown')return '\u2193'; return k.length===1?k.toUpperCase():k; }
-function updateKeyHint(){ const h=$('#playHint'); if(h) h.textContent='タップ：4レーンを叩こう！　PC：'+LANE_KEYS.map(keyLabel).join(' / '); }
+function updateKeyHint(){ const h=$('#playHint'); if(h) h.textContent='タップで判定／矢印ノーツは向きにフリック　PC：'+LANE_KEYS.map(keyLabel).join(' / '); }
 function renderKeyConfig(){ const wrap=$('#keyCfg'); if(!wrap)return; wrap.innerHTML='';
   LANE_KEYS.forEach((k,i)=>{ const b=document.createElement('div'); b.className='keycap'+(rebindLane===i?' wait':'');
     b.innerHTML='<span class="dot" style="background:'+LANE_COLORS[i].a+'"></span>'+(rebindLane===i?'押す…':keyLabel(k));
@@ -401,7 +436,10 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
     grid.appendChild(card); }); }
-function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); }catch(e){} }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const sx=localStorage.getItem('pk_sfx'); AudioEngine.sfx=(sx===null)?true:(sx==='1'); const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
+function applySfx(){ const b=$('#sfxToggle'); if(b){ b.textContent=AudioEngine.sfx?'ON':'OFF'; b.classList.toggle('on',AudioEngine.sfx); } }
+function applySpeed(){ const lbl='\u00d7'+noteSpeed.toFixed(1); const r=$('#speedRange'); if(r)r.value=noteSpeed; const a=$('#speedVal'); if(a)a.textContent=lbl; const b=$('#speedValOpt'); if(b)b.textContent=lbl; }
+function setNoteSpeed(v){ noteSpeed=Math.min(3,Math.max(0.5,Math.round(v*10)/10)); try{localStorage.setItem('pk_speed',String(noteSpeed));}catch(e){} applySpeed(); }
 function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
 function applyChar(){ const b=$('#charToggle'); if(b){b.textContent=SHOW_CHAR?'ON':'OFF'; b.classList.toggle('on',SHOW_CHAR);} const ci=$('#charImg'); if(ci)ci.style.display=SHOW_CHAR?'':'none'; renderSongs(); }
 
@@ -440,6 +478,8 @@ $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
 $('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
 $('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
+$('#sfxToggle').onclick=()=>{ AudioEngine.sfx=!AudioEngine.sfx; try{localStorage.setItem('pk_sfx',AudioEngine.sfx?'1':'0');}catch(e){} applySfx(); };
+{ const r=$('#speedRange'); if(r) r.oninput=(e)=>setNoteSpeed(parseFloat(e.target.value)); const u=$('#speedUp'); if(u)u.onclick=()=>setNoteSpeed(noteSpeed+0.1); const d=$('#speedDown'); if(d)d.onclick=()=>setNoteSpeed(noteSpeed-0.1); }
 $('#profileBtn').onclick=openShop;
 $('#shopBack').onclick=closeShop;
 
@@ -449,7 +489,7 @@ async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
 async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); resize(); buildStars();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderKeyConfig(); requestAnimationFrame(loop);
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); applySfx(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }

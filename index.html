@@ -165,8 +165,15 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .preview-btn{pointer-events:auto;cursor:pointer;font-weight:800;font-size:13px;color:#fff;background:rgba(60,32,110,.7);border:1.5px solid rgba(255,210,150,.5);border-radius:22px;padding:8px 22px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
 .preview-btn.playing{background:linear-gradient(90deg,#ff79c6,#b06bff);border-color:#ffe7a8;}
 .sel-label{font-size:11px;letter-spacing:.16em;color:#d9c4ff;font-weight:700;margin-bottom:6px;}
-.opt-row{display:flex;gap:9px;margin-bottom:15px;min-height:48px;}
-.opt-pill{pointer-events:auto;cursor:pointer;min-width:80px;padding:10px 8px;border-radius:14px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);transition:.15s;}
+.opt-row{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:15px;min-height:48px;}
+.speed-ctl{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:15px;}
+.spd-btn{pointer-events:auto;cursor:pointer;width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-family:'Mochiy Pop One';font-size:22px;line-height:1;}
+.spd-btn:active{background:rgba(255,207,92,.25);}
+.spd-val{min-width:84px;text-align:center;font-family:'Mochiy Pop One';font-size:22px;color:#ffe7a8;}
+.speed-set{display:flex;align-items:center;gap:10px;}
+.speed-set input[type=range]{width:130px;}
+.speed-set span{font-family:'Mochiy Pop One';font-size:14px;color:#ffe7a8;min-width:42px;text-align:right;}
+.opt-pill{pointer-events:auto;cursor:pointer;flex:0 0 auto;min-width:72px;padding:10px 10px;border-radius:14px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);transition:.15s;}
 .opt-pill.sel{border-color:var(--gold);background:rgba(255,207,92,.18);transform:translateY(-3px);box-shadow:0 8px 18px rgba(255,180,90,.3);}
 .opt-pill .pn{font-family:'Mochiy Pop One';font-size:15px;}
 .opt-pill .pd{font-size:10px;color:#ffd9f2;margin-top:2px;}
@@ -342,6 +349,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <button class="preview-btn" id="previewBtn">&#9654; 視聴</button>
     <div class="sel-label">DIFFICULTY</div><div class="opt-row" id="diffSelect"></div>
     <div class="sel-label">LENGTH</div><div class="opt-row" id="lengthSelect"></div>
+    <div class="sel-label">SPEED</div><div class="speed-ctl"><button class="spd-btn" id="speedDown">&#8722;</button><div class="spd-val" id="speedValOpt">&#215;1.0</div><button class="spd-btn" id="speedUp">&#43;</button></div>
     <button class="btn" id="startBtn">START &#9834;</button>
     <div class="hint" id="playHint">タップ：4レーンを叩こう！　PC：D / F / J / K</div>
   </div>
@@ -400,6 +408,8 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       <div class="set-row"><span class="k">軽量モード</span><button class="toggle" id="liteToggle">OFF</button></div>
       <div class="set-note">動作が重いときにON（発光や解像度を下げて軽くします）</div>
       <div class="set-row"><span class="k">キャラを表示</span><button class="toggle on" id="charToggle">ON</button></div>
+      <div class="set-row"><span class="k">タップ音</span><button class="toggle on" id="sfxToggle">ON</button></div>
+      <div class="set-row"><span class="k">ノーツ速度</span><div class="speed-set"><input type="range" id="speedRange" min="0.5" max="3" step="0.1" value="1"><span id="speedVal">&#215;1.0</span></div></div>
       <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="k">キー設定（PC）</span><div class="keycfg" id="keyCfg"></div><div class="set-note" style="margin:0">変えたいキーをタップ → 新しいキーを押してね</div></div>
       <button class="btn" id="closeSettings" style="width:100%;padding:12px;">とじる</button>
     </div>
