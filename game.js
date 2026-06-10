@@ -90,7 +90,7 @@ const AudioEngine={
     s.onended=()=>{ if(this.previewSrc===s){ this.previewing=false; this.previewSrc=null; onPreviewEnded(); } }; },
   stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; },
   ensureFx(){ if(this._fx) return this._fx; const ctx=this.ctx; const dl=ctx.createDelay(0.6); dl.delayTime.value=0.14; const fb=ctx.createGain(); fb.gain.value=0.18; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600; const wet=ctx.createGain(); wet.gain.value=0.28; dl.connect(lp); lp.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(this.gain); this._fx={input:dl}; return this._fx; },
-  hit(j){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol, fm=j==='PERFECT'?1:j==='GREAT'?0.97:0.94; const fx=this.ensureFx();
+  hit(){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol, fm=1; const fx=this.ensureFx();
     const voice=(type,freq,peak,dur,o={})=>{ const osc=ctx.createOscillator(), g=ctx.createGain(); osc.type=type; const f=freq*fm; osc.frequency.setValueAtTime((o.f0||f),t); if(o.glide) osc.frequency.exponentialRampToValueAtTime(Math.max(1,f),t+(o.glideT||0.06)); if(o.detune) osc.detune.value=o.detune;
       const atk=o.atk==null?0.006:o.atk; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002,peak*vol),t+atk); g.gain.exponentialRampToValueAtTime(0.0006,t+dur);
       let out=g; osc.connect(g); if(o.lp){ const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=o.lp; g.connect(f2); out=f2; } out.connect(this.gain); if(o.send) out.connect(fx.input); osc.start(t); osc.stop(t+dur+0.06); };
@@ -188,7 +188,7 @@ function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PER
   showJudge(j); updateHUD(); }
 function activateFever(){ G.feverActive=true; G.feverEnd=songTime()+7; stage.classList.add('fever'); const fb=$('#feverBanner'); fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show'); $('#feverWrap').classList.add('ready'); }
 function endFever(){ G.feverActive=false; G.fever=0; stage.classList.remove('fever'); $('#feverWrap').classList.remove('ready'); }
-function triggerHit(lane,j){ AudioEngine.hit(j); G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
+function triggerHit(lane,j){ G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5; G.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,col:col.a,size:2+Math.random()*3}); } }
 
 let scoreAddTimer=null;
@@ -257,13 +257,13 @@ function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&25
 /* ============ input ============ */
 function laneFromX(clientX){ const r=stage.getBoundingClientRect(),x=clientX-r.left; let best=0,bd=1e9; for(let i=0;i<LANES;i++){const d=Math.abs(x-geo.botX[i]); if(d<bd){bd=d;best=i;}} return best; }
 const activeTouches={};
-stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]={lane,x0:tch.clientX,y0:tch.clientY,flicked:false}; G.lanePressed[lane]=true; judgeTap(lane); handled=true; } if(handled)e.preventDefault(); },{passive:false});
+stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]={lane,x0:tch.clientX,y0:tch.clientY,flicked:false}; G.lanePressed[lane]=true; judgeTap(lane); AudioEngine.hit(); handled=true; } if(handled)e.preventDefault(); },{passive:false});
 stage.addEventListener('touchmove',e=>{ if(!G||!G.started||G.paused||G.ended)return; for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(!o||o.flicked)continue; const dx=tch.clientX-o.x0, dy=tch.clientY-o.y0, ax=Math.abs(dx), ay=Math.abs(dy); if(Math.max(ax,ay)<24)continue; const dir=ay>=ax?(dy<0?'up':'down'):(dx<0?'left':'right'); o.flicked=true; judgeFlick(o.lane,dir); } e.preventDefault(); },{passive:false});
 stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const lane=o.lane; delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).some(v=>v.lane===lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
 stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const l=o.lane; delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
-stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeAny(lane); });
+stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeAny(lane); AudioEngine.hit(); });
 window.addEventListener('mouseup',()=>{ if(G){ for(let l=0;l<LANES;l++) releaseLane(l); G.lanePressed=[false,false,false,false]; } });
-window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeAny(lane); } });
+window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeAny(lane); AudioEngine.hit(); } });
 window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G){ G.lanePressed[lane]=false; releaseLane(lane); } });
 
 /* ============ jacket art ============ */
@@ -439,7 +439,7 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
 function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
 const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
 function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
-function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.hit('PERFECT'); } }
+function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.hit(); } }
 function applySpeed(){ const lbl='\u00d7'+noteSpeed.toFixed(1); const r=$('#speedRange'); if(r)r.value=noteSpeed; const a=$('#speedVal'); if(a)a.textContent=lbl; const b=$('#speedValOpt'); if(b)b.textContent=lbl; }
 function setNoteSpeed(v){ noteSpeed=Math.min(3,Math.max(0.5,Math.round(v*10)/10)); try{localStorage.setItem('pk_speed',String(noteSpeed));}catch(e){} applySpeed(); }
 function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
