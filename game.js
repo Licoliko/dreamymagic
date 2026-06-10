@@ -55,7 +55,7 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,
+  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,_fx:null,
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
   unlock(){ try{ this.init(); if(this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
@@ -89,19 +89,18 @@ const AudioEngine={
     s.start(now,from,len); this.previewSrc=s; this.previewing=true;
     s.onended=()=>{ if(this.previewSrc===s){ this.previewing=false; this.previewSrc=null; onPreviewEnded(); } }; },
   stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; },
-  hit(j){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol; const fm=j==='PERFECT'?1:j==='GREAT'?0.95:0.9;
-    const tone=(type,f0,f1,peak,dur)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f0*fm,t); if(f1&&f1!==f0) o.frequency.exponentialRampToValueAtTime(Math.max(1,f1*fm),t+dur);
-      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak*vol,t+0.005); g.gain.exponentialRampToValueAtTime(0.0006,t+dur); o.connect(g).connect(this.gain); o.start(t); o.stop(t+dur+0.02); };
-    const noise=(hp,peak,dur)=>{ if(!this._noise){ const n=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.2),ctx.sampleRate); const d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this._noise=n; }
-      const s=ctx.createBufferSource(); s.buffer=this._noise; const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=ctx.createGain();
-      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak*vol,t+0.004); g.gain.exponentialRampToValueAtTime(0.0005,t+dur); s.connect(f).connect(g).connect(this.gain); s.start(t); s.stop(t+dur+0.02); };
+  ensureFx(){ if(this._fx) return this._fx; const ctx=this.ctx; const dl=ctx.createDelay(0.6); dl.delayTime.value=0.14; const fb=ctx.createGain(); fb.gain.value=0.18; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600; const wet=ctx.createGain(); wet.gain.value=0.28; dl.connect(lp); lp.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(this.gain); this._fx={input:dl}; return this._fx; },
+  hit(j){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol, fm=j==='PERFECT'?1:j==='GREAT'?0.97:0.94; const fx=this.ensureFx();
+    const voice=(type,freq,peak,dur,o={})=>{ const osc=ctx.createOscillator(), g=ctx.createGain(); osc.type=type; const f=freq*fm; osc.frequency.setValueAtTime((o.f0||f),t); if(o.glide) osc.frequency.exponentialRampToValueAtTime(Math.max(1,f),t+(o.glideT||0.06)); if(o.detune) osc.detune.value=o.detune;
+      const atk=o.atk==null?0.006:o.atk; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002,peak*vol),t+atk); g.gain.exponentialRampToValueAtTime(0.0006,t+dur);
+      let out=g; osc.connect(g); if(o.lp){ const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=o.lp; g.connect(f2); out=f2; } out.connect(this.gain); if(o.send) out.connect(fx.input); osc.start(t); osc.stop(t+dur+0.06); };
     switch(this.sfxType){
-      case 'shan': tone('triangle',1568,1568,0.16,0.16); tone('sine',3136,3136,0.07,0.12); noise(5200,0.11,0.09); break;
-      case 'pon':  tone('sine',900,520,0.24,0.14); break;
-      case 'don':  tone('sine',160,80,0.36,0.2); tone('triangle',110,70,0.18,0.18); noise(500,0.05,0.04); break;
-      case 'kan':  tone('square',2300,2300,0.10,0.08); tone('sawtooth',3400,3400,0.05,0.06); noise(6000,0.07,0.05); break;
-      case 'pico': tone('square',1320,1760,0.13,0.09); break;
-      default:     tone('triangle',1568,1568,0.16,0.16); noise(5200,0.10,0.08);
+      case 'shan': voice('sine',1568,0.13,0.45,{atk:0.004,send:1}); voice('sine',2349,0.06,0.34,{atk:0.004,send:1}); voice('triangle',3136,0.028,0.2,{atk:0.003,send:1}); break;
+      case 'pon':  voice('sine',784,0.20,0.24,{atk:0.004,f0:1180,glide:1,glideT:0.05}); voice('sine',1568,0.06,0.16,{atk:0.004}); break;
+      case 'don':  voice('sine',150,0.34,0.30,{atk:0.006,f0:250,glide:1,glideT:0.09}); voice('triangle',92,0.15,0.32,{atk:0.008}); break;
+      case 'kan':  voice('sine',2093,0.12,0.42,{atk:0.003,send:1}); voice('sine',2960,0.06,0.32,{atk:0.003,send:1}); voice('sine',3729,0.03,0.18,{atk:0.003,send:1}); break;
+      case 'pico': voice('square',988,0.12,0.14,{atk:0.004,f0:740,glide:1,glideT:0.03,lp:2600}); voice('square',1976,0.045,0.1,{atk:0.004,lp:3200}); break;
+      default:     voice('sine',1568,0.13,0.42,{send:1});
     }
   }catch(e){} }
 };
@@ -288,7 +287,7 @@ function buildTabs(){ const wrap=$('#tabs'); wrap.innerHTML=''; TABS.forEach(t=>
 function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(n=>{ const el=document.createElement('div'); el.className='nav-item'+(n.sel?' sel':''); el.innerHTML=`<span class="ic">${n.ic}</span>${n.label}`; el.onclick=()=>{ if(n.k==='shop') openShop(); else if(!n.sel) toast(n.label+'は準備中だよ \u2728'); }; wrap.appendChild(el); }); }
 function filteredSongs(){ let arr=allSongs().slice(); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
 function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=filteredSongs();
-  if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「MP3を追加」から端末の曲を選んでね')+'</div>'; }
+  if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「mp3で遊ぶ」から端末の曲を選んでね')+'</div>'; }
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item'+(song.isNew?' new':'');
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
