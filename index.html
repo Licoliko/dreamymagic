@@ -11,6 +11,7 @@
 :root{--pink:#ff79c6;--pink-hot:#ff4fb0;--gold:#ffcf5c;--gold-deep:#f5a623;--blue:#6fc0ff;--blue-deep:#3d8bff;--purple:#b48bff;--purple-deep:#8b5cff;--bg0:#1b1038;--glow:#ffe7a8;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
 html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rounded 1c',sans-serif;color:#fff;touch-action:none;}
+#fxCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998;}
 #app{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0c0820;}
 #stage{position:relative;width:100%;height:100%;max-width:520px;max-height:100vh;overflow:hidden;background:radial-gradient(120% 80% at 50% 0%,#6b3aa0 0%,#4a2580 28%,#2c1656 55%,#1b1038 100%);}
 @media(min-aspect-ratio:13/20){#stage{max-width:min(520px,56vh);}}
@@ -296,6 +297,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 </style>
 </head>
 <body>
+<canvas id="fxCanvas"></canvas>
 <div id="app"><div id="stage">
   <svg class="sky-castle" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg"><g fill="#caa6f0" stroke="#e9d0ff" stroke-width="1"><rect x="40" y="70" width="120" height="60" rx="3"/><rect x="20" y="86" width="30" height="44"/><rect x="150" y="86" width="30" height="44"/><rect x="86" y="50" width="28" height="80"/><polygon points="34,86 20,86 27,64"/><polygon points="180,86 150,86 165,64"/><polygon points="114,50 86,50 100,18"/><polygon points="50,70 40,70 45,54"/><polygon points="160,70 150,70 155,54"/></g><g fill="#5a2c86"><rect x="96" y="104" width="8" height="26" rx="3"/></g></svg>
   <div class="cloud" style="width:160px;height:90px;left:-30px;top:30%"></div>
