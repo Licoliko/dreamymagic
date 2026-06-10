@@ -55,7 +55,7 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,sfx:true,_noise:null,
+  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
   async ensure(song){
@@ -88,18 +88,20 @@ const AudioEngine={
     s.start(now,from,len); this.previewSrc=s; this.previewing=true;
     s.onended=()=>{ if(this.previewSrc===s){ this.previewing=false; this.previewSrc=null; onPreviewEnded(); } }; },
   stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; },
-  hit(j){ if(!this.sfx) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol;
-    const f = j==='PERFECT'?1760 : j==='GREAT'?1480 : 1175;
-    const o1=ctx.createOscillator(), g1=ctx.createGain(); o1.type='triangle'; o1.frequency.value=f;
-    g1.gain.setValueAtTime(0.0001,t); g1.gain.exponentialRampToValueAtTime(0.16*vol,t+0.005); g1.gain.exponentialRampToValueAtTime(0.0008,t+0.16);
-    o1.connect(g1).connect(this.gain); o1.start(t); o1.stop(t+0.18);
-    const o2=ctx.createOscillator(), g2=ctx.createGain(); o2.type='sine'; o2.frequency.value=f*2;
-    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime(0.07*vol,t+0.004); g2.gain.exponentialRampToValueAtTime(0.0006,t+0.12);
-    o2.connect(g2).connect(this.gain); o2.start(t); o2.stop(t+0.14);
-    if(!this._noise){ const n=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.2),ctx.sampleRate); const d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this._noise=n; }
-    const ns=ctx.createBufferSource(); ns.buffer=this._noise; const bp=ctx.createBiquadFilter(); bp.type='highpass'; bp.frequency.value=5200;
-    const gn=ctx.createGain(); gn.gain.setValueAtTime(0.0001,t); gn.gain.exponentialRampToValueAtTime(0.11*vol,t+0.004); gn.gain.exponentialRampToValueAtTime(0.0005,t+0.09);
-    ns.connect(bp).connect(gn).connect(this.gain); ns.start(t); ns.stop(t+0.1);
+  hit(j){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol; const fm=j==='PERFECT'?1:j==='GREAT'?0.95:0.9;
+    const tone=(type,f0,f1,peak,dur)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f0*fm,t); if(f1&&f1!==f0) o.frequency.exponentialRampToValueAtTime(Math.max(1,f1*fm),t+dur);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak*vol,t+0.005); g.gain.exponentialRampToValueAtTime(0.0006,t+dur); o.connect(g).connect(this.gain); o.start(t); o.stop(t+dur+0.02); };
+    const noise=(hp,peak,dur)=>{ if(!this._noise){ const n=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.2),ctx.sampleRate); const d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this._noise=n; }
+      const s=ctx.createBufferSource(); s.buffer=this._noise; const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak*vol,t+0.004); g.gain.exponentialRampToValueAtTime(0.0005,t+dur); s.connect(f).connect(g).connect(this.gain); s.start(t); s.stop(t+dur+0.02); };
+    switch(this.sfxType){
+      case 'shan': tone('triangle',1568,1568,0.16,0.16); tone('sine',3136,3136,0.07,0.12); noise(5200,0.11,0.09); break;
+      case 'pon':  tone('sine',900,520,0.24,0.14); break;
+      case 'don':  tone('sine',160,80,0.36,0.2); tone('triangle',110,70,0.18,0.18); noise(500,0.05,0.04); break;
+      case 'kan':  tone('square',2300,2300,0.10,0.08); tone('sawtooth',3400,3400,0.05,0.06); noise(6000,0.07,0.05); break;
+      case 'pico': tone('square',1320,1760,0.13,0.09); break;
+      default:     tone('triangle',1568,1568,0.16,0.16); noise(5200,0.10,0.08);
+    }
   }catch(e){} }
 };
 
@@ -136,7 +138,7 @@ const AutoChart={
         for(const o of onsets){ if(o.s<strThr) continue; if(o.t-lt<minGap) continue; let lane=laneOf(o.z);
           if(o.t-ll[lane]<minGap*1.2){ let bl=0,bd=-9; for(let L=0;L<4;L++){ if(o.t-ll[L]>bd){bd=o.t-ll[L];bl=L;} } lane=bl; }
           notes.push({t:+o.t.toFixed(3),lane,hold:0}); lt=o.t; ll[lane]=o.t; } return notes; };
-      const addFlicks=(notes,prob)=>{ for(const n of notes){ if(!n.hold && Math.random()<prob) n.flick=['up','up','up','left','right'][Math.floor(Math.random()*5)]; } return notes; };
+      const addFlicks=(notes,prob)=>{ for(const n of notes){ if(!n.hold && Math.random()<prob) n.flick='up'; } return notes; };
       const charts={ EASY:{lv:3,notes:build(0.34,sp(.6))}, NORMAL:{lv:5,notes:build(0.22,sp(.35))}, HARD:{lv:8,notes:addFlicks(build(0.13,sp(.12)),0.10)}, VERYHARD:{lv:11,notes:addFlicks(build(0.10,sp(.04)),0.16)} };
       return {bpm:this.estimateBpm(flux,secPerF)||120, duration:+dur.toFixed(3), lanes:4, charts};
     }catch(e){ console.error('autochart',e); return this.metronome(buf.duration||120); }
@@ -222,8 +224,8 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
     if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n,clamp(1-dt/travel,0,1)); }
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
-function drawNote(n,p){ const lane=n.lane; const {x,y,scale}=lanePos(lane,p); const c=LANE_COLORS[lane];
-  if(n.flick){ drawFlick(x,y,scale,c,n.flick); return; }
+function drawNote(n,p){ drawNoteBase(n.lane,p); if(n.flick){ const {x,y,scale}=lanePos(n.lane,p); drawUpArrow(x,y,scale); } }
+function drawNoteBase(lane,p){ const {x,y,scale}=lanePos(lane,p); const c=LANE_COLORS[lane];
   const sk=CUR_NOTE, rec=sk&&sk.kind!=='draw'?noteImgs[sk.id]:null;
   if(rec&&rec.ready){ const cw=rec.img.naturalWidth/4, ch=rec.img.naturalHeight; let w,h;
     if(sk.kind==='bar'){ w=geo.noteBaseW*scale*1.2; h=w*rec.aspect; } else { h=geo.laneW*scale*0.96; w=h*(cw/ch); }
@@ -238,15 +240,11 @@ function drawHoldBody(lane,pHead,pTail,holding){ const a=lanePos(lane,pTail),b=l
   const grd=ctx.createLinearGradient(a.x,a.y,b.x,b.y); grd.addColorStop(0,hexA(c.a,holding?0.8:0.55)); grd.addColorStop(1,hexA(c.b,holding?0.9:0.62));
   if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=holding?16:10;} ctx.fillStyle=grd; ctx.fill();
   ctx.shadowBlur=0; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.lineWidth=Math.max(2,wb*0.22); ctx.strokeStyle=hexA('#ffffff',holding?0.85:0.5); ctx.stroke(); ctx.restore();
-  drawHoldCap(a.x,a.y,wa,c,holding); if(holding) drawHoldCap(b.x,b.y,wb*1.1,c,true); }
-function drawHoldCap(x,y,w,c,bright){ ctx.save(); ctx.translate(x,y); if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=bright?14:8;} const h=Math.max(8,w*0.42); const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#ffffff'); g.addColorStop(.5,c.a); g.addColorStop(1,c.b); roundRect(-w*0.6,-h/2,w*1.2,h,h/2); ctx.fillStyle=g; ctx.fill(); ctx.restore(); }
-function drawFlick(x,y,scale,c,dir){ const s=geo.laneW*scale*0.5; ctx.save(); ctx.translate(x,y);
-  if(!LITE){ctx.shadowColor=c.a; ctx.shadowBlur=14*scale;} const g=ctx.createLinearGradient(0,-s,0,s); g.addColorStop(0,'#ffffff'); g.addColorStop(.4,c.a); g.addColorStop(1,c.b);
-  roundRect(-s,-s,s*2,s*2,s*0.5); ctx.fillStyle=g; ctx.fill(); ctx.shadowBlur=0;
-  ctx.rotate(dir==='up'?0:dir==='down'?Math.PI:dir==='left'?-Math.PI/2:Math.PI/2);
-  ctx.strokeStyle='rgba(255,255,255,0.96)'; ctx.lineWidth=Math.max(2.5,s*0.32); ctx.lineCap='round'; ctx.lineJoin='round'; const aw=s*0.62, ah=s*0.5;
-  ctx.beginPath(); ctx.moveTo(-aw,ah*0.30); ctx.lineTo(0,-ah*0.7); ctx.lineTo(aw,ah*0.30); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-aw,ah*0.95); ctx.lineTo(0,-ah*0.05); ctx.lineTo(aw,ah*0.95); ctx.stroke(); ctx.restore(); }
+  drawNoteBase(lane,pTail); if(holding) drawNoteBase(lane,pHead); }
+function drawUpArrow(x,y,scale){ const s=geo.laneW*scale*0.30; ctx.save(); ctx.translate(x,y); ctx.lineCap='round'; ctx.lineJoin='round'; const aw=s*0.85, ah=s*0.62;
+  if(!LITE){ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=3;}
+  ctx.strokeStyle='rgba(40,20,70,0.55)'; ctx.lineWidth=Math.max(3.5,s*0.62); ctx.beginPath(); ctx.moveTo(-aw,ah*0.5); ctx.lineTo(0,-ah*0.55); ctx.lineTo(aw,ah*0.5); ctx.stroke();
+  ctx.shadowBlur=0; ctx.strokeStyle='rgba(255,255,255,0.98)'; ctx.lineWidth=Math.max(2,s*0.4); ctx.beginPath(); ctx.moveTo(-aw,ah*0.5); ctx.lineTo(0,-ah*0.55); ctx.lineTo(aw,ah*0.5); ctx.stroke(); ctx.restore(); }
 function drawCircle(x,y,r,c,intensity){ ctx.save(); ctx.translate(x,y); ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.strokeStyle=hexA(c.a,0.5+intensity*0.5); ctx.lineWidth=2; ctx.stroke();
   ctx.beginPath(); ctx.arc(0,0,r*0.7,0,7); ctx.strokeStyle=hexA(c.b,0.4); ctx.lineWidth=1.4; ctx.stroke(); ctx.rotate(Math.PI/4); const s=r*0.38*(1+intensity*0.4); const g=ctx.createLinearGradient(-s,-s,s,s); g.addColorStop(0,'#fff'); g.addColorStop(1,c.a);
   ctx.shadowColor=c.a; if(!LITE)ctx.shadowBlur=14+intensity*22; ctx.fillStyle=g; ctx.fillRect(-s/2,-s/2,s,s); ctx.restore(); }
@@ -436,8 +434,10 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
     grid.appendChild(card); }); }
-function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const sx=localStorage.getItem('pk_sfx'); AudioEngine.sfx=(sx===null)?true:(sx==='1'); const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
-function applySfx(){ const b=$('#sfxToggle'); if(b){ b.textContent=AudioEngine.sfx?'ON':'OFF'; b.classList.toggle('on',AudioEngine.sfx); } }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
+const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
+function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
+function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.init(); AudioEngine.hit('PERFECT'); } }
 function applySpeed(){ const lbl='\u00d7'+noteSpeed.toFixed(1); const r=$('#speedRange'); if(r)r.value=noteSpeed; const a=$('#speedVal'); if(a)a.textContent=lbl; const b=$('#speedValOpt'); if(b)b.textContent=lbl; }
 function setNoteSpeed(v){ noteSpeed=Math.min(3,Math.max(0.5,Math.round(v*10)/10)); try{localStorage.setItem('pk_speed',String(noteSpeed));}catch(e){} applySpeed(); }
 function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
@@ -478,7 +478,6 @@ $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
 $('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
 $('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
-$('#sfxToggle').onclick=()=>{ AudioEngine.sfx=!AudioEngine.sfx; try{localStorage.setItem('pk_sfx',AudioEngine.sfx?'1':'0');}catch(e){} applySfx(); };
 { const r=$('#speedRange'); if(r) r.oninput=(e)=>setNoteSpeed(parseFloat(e.target.value)); const u=$('#speedUp'); if(u)u.onclick=()=>setNoteSpeed(noteSpeed+0.1); const d=$('#speedDown'); if(d)d.onclick=()=>setNoteSpeed(noteSpeed-0.1); }
 $('#profileBtn').onclick=openShop;
 $('#shopBack').onclick=closeShop;
@@ -489,7 +488,7 @@ async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
 async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); resize(); buildStars();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); applySfx(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }
