@@ -55,9 +55,9 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,_fx:null,
+  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,_buffers:{},
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
-  unlock(){ try{ this.init(); if(this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
+  unlock(){ try{ this.init(); if(this.ctx.state==='suspended') this.ctx.resume(); this.bake(this.sfxType); }catch(e){} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
   async ensure(song){
     this.init(); if(this.ctx.state==='suspended'){ try{await this.ctx.resume();}catch(e){} }
@@ -89,20 +89,20 @@ const AudioEngine={
     s.start(now,from,len); this.previewSrc=s; this.previewing=true;
     s.onended=()=>{ if(this.previewSrc===s){ this.previewing=false; this.previewSrc=null; onPreviewEnded(); } }; },
   stopPreview(){ if(this.previewSrc){ try{this.previewSrc.stop();}catch(e){} this.previewSrc=null; } this.previewing=false; },
-  ensureFx(){ if(this._fx) return this._fx; const ctx=this.ctx; const dl=ctx.createDelay(0.6); dl.delayTime.value=0.14; const fb=ctx.createGain(); fb.gain.value=0.18; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600; const wet=ctx.createGain(); wet.gain.value=0.28; dl.connect(lp); lp.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(this.gain); this._fx={input:dl}; return this._fx; },
-  hit(){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const t=ctx.currentTime, vol=this.vol, fm=1; const fx=this.ensureFx();
-    const voice=(type,freq,peak,dur,o={})=>{ const osc=ctx.createOscillator(), g=ctx.createGain(); osc.type=type; const f=freq*fm; osc.frequency.setValueAtTime((o.f0||f),t); if(o.glide) osc.frequency.exponentialRampToValueAtTime(Math.max(1,f),t+(o.glideT||0.06)); if(o.detune) osc.detune.value=o.detune;
-      const atk=o.atk==null?0.006:o.atk; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002,peak*vol),t+atk); g.gain.exponentialRampToValueAtTime(0.0006,t+dur);
-      let out=g; osc.connect(g); if(o.lp){ const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=o.lp; g.connect(f2); out=f2; } out.connect(this.gain); if(o.send) out.connect(fx.input); osc.start(t); osc.stop(t+dur+0.06); };
-    switch(this.sfxType){
+  _synth(ctx,dest,t,type){ const fx=ctx.createDelay(0.6); fx.delayTime.value=0.14; const fb=ctx.createGain(); fb.gain.value=0.18; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600; const wet=ctx.createGain(); wet.gain.value=0.28; fx.connect(lp); lp.connect(fb); fb.connect(fx); fx.connect(wet); wet.connect(dest);
+    const voice=(wave,freq,peak,dur,o={})=>{ const osc=ctx.createOscillator(), g=ctx.createGain(); osc.type=wave; osc.frequency.setValueAtTime((o.f0||freq),t); if(o.glide) osc.frequency.exponentialRampToValueAtTime(Math.max(1,freq),t+(o.glideT||0.06));
+      const atk=o.atk==null?0.006:o.atk; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002,peak),t+atk); g.gain.exponentialRampToValueAtTime(0.0006,t+dur);
+      let out=g; osc.connect(g); if(o.lp){ const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=o.lp; g.connect(f2); out=f2; } out.connect(dest); if(o.send) out.connect(fx); osc.start(t); osc.stop(t+dur+0.06); };
+    switch(type){
       case 'shan': voice('sine',1568,0.13,0.45,{atk:0.004,send:1}); voice('sine',2349,0.06,0.34,{atk:0.004,send:1}); voice('triangle',3136,0.028,0.2,{atk:0.003,send:1}); break;
       case 'pon':  voice('sine',784,0.20,0.24,{atk:0.004,f0:1180,glide:1,glideT:0.05}); voice('sine',1568,0.06,0.16,{atk:0.004}); break;
       case 'don':  voice('sine',150,0.34,0.30,{atk:0.006,f0:250,glide:1,glideT:0.09}); voice('triangle',92,0.15,0.32,{atk:0.008}); break;
       case 'kan':  voice('sine',2093,0.12,0.42,{atk:0.003,send:1}); voice('sine',2960,0.06,0.32,{atk:0.003,send:1}); voice('sine',3729,0.03,0.18,{atk:0.003,send:1}); break;
       case 'pico': voice('square',988,0.12,0.14,{atk:0.004,f0:740,glide:1,glideT:0.03,lp:2600}); voice('square',1976,0.045,0.1,{atk:0.004,lp:3200}); break;
       default:     voice('sine',1568,0.13,0.42,{send:1});
-    }
-  }catch(e){} }
+    } },
+  async bake(type){ try{ if(!type||type==='none') return null; if(this._buffers[type]) return this._buffers[type]; const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!OC) return null; const sr=(this.ctx&&this.ctx.sampleRate)||44100; const off=new OC(1,Math.ceil(sr*0.7),sr); this._synth(off,off.destination,0,type); const buf=await off.startRendering(); this._buffers[type]=buf; return buf; }catch(e){ return null; } },
+  hit(){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const buf=this._buffers[this.sfxType]; if(buf){ const s=ctx.createBufferSource(); s.buffer=buf; s.connect(this.gain); s.start(); } else { this.bake(this.sfxType); } }catch(e){} },
 };
 
 /* ============ in-browser auto chart (time-domain) ============ */
@@ -257,13 +257,13 @@ function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&25
 /* ============ input ============ */
 function laneFromX(clientX){ const r=stage.getBoundingClientRect(),x=clientX-r.left; let best=0,bd=1e9; for(let i=0;i<LANES;i++){const d=Math.abs(x-geo.botX[i]); if(d<bd){bd=d;best=i;}} return best; }
 const activeTouches={};
-stage.addEventListener('touchstart',e=>{ if(!G||!G.started||G.paused||G.ended)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]={lane,x0:tch.clientX,y0:tch.clientY,flicked:false}; G.lanePressed[lane]=true; judgeTap(lane); AudioEngine.hit(); handled=true; } if(handled)e.preventDefault(); },{passive:false});
+stage.addEventListener('touchstart',e=>{ if(!G||G.ended||G.paused)return; let handled=false; for(const tch of e.changedTouches){ if(tch.target&&tch.target.closest&&tch.target.closest('#pauseBtn,.screen'))continue; const lane=laneFromX(tch.clientX); activeTouches[tch.identifier]={lane,x0:tch.clientX,y0:tch.clientY,flicked:false}; if(G.started){ G.lanePressed[lane]=true; judgeTap(lane); } AudioEngine.hit(); handled=true; } if(handled)e.preventDefault(); },{passive:false});
 stage.addEventListener('touchmove',e=>{ if(!G||!G.started||G.paused||G.ended)return; for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(!o||o.flicked)continue; const dx=tch.clientX-o.x0, dy=tch.clientY-o.y0, ax=Math.abs(dx), ay=Math.abs(dy); if(Math.max(ax,ay)<24)continue; const dir=ay>=ax?(dy<0?'up':'down'):(dx<0?'left':'right'); o.flicked=true; judgeFlick(o.lane,dir); } e.preventDefault(); },{passive:false});
 stage.addEventListener('touchend',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const lane=o.lane; delete activeTouches[tch.identifier]; if(!Object.values(activeTouches).some(v=>v.lane===lane)){ if(G)G.lanePressed[lane]=false; releaseLane(lane); } } } },{passive:false});
 stage.addEventListener('touchcancel',e=>{ for(const tch of e.changedTouches){ const o=activeTouches[tch.identifier]; if(o!==undefined){ const l=o.lane; delete activeTouches[tch.identifier]; if(G)G.lanePressed[l]=false; releaseLane(l);} } });
-stage.addEventListener('mousedown',e=>{ if(!G||!G.started||G.paused||G.ended)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); G.lanePressed[lane]=true; judgeAny(lane); AudioEngine.hit(); });
+stage.addEventListener('mousedown',e=>{ if(!G||G.ended||G.paused)return; if(e.target&&e.target.closest&&e.target.closest('#pauseBtn,.screen'))return; const lane=laneFromX(e.clientX); if(G.started){ G.lanePressed[lane]=true; judgeAny(lane); } AudioEngine.hit(); });
 window.addEventListener('mouseup',()=>{ if(G){ for(let l=0;l<LANES;l++) releaseLane(l); G.lanePressed=[false,false,false,false]; } });
-window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&G.started&&!G.paused&&!G.ended){ G.lanePressed[lane]=true; judgeAny(lane); AudioEngine.hit(); } });
+window.addEventListener('keydown',e=>{ if(e.repeat)return; const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G&&!G.ended&&!G.paused){ if(G.started){ G.lanePressed[lane]=true; judgeAny(lane); } AudioEngine.hit(); } });
 window.addEventListener('keyup',e=>{ const lane=LANE_KEYS.indexOf(e.key.toLowerCase()); if(lane>=0&&G){ G.lanePressed[lane]=false; releaseLane(lane); } });
 
 /* ============ jacket art ============ */
@@ -330,7 +330,7 @@ function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#c
 async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
   $('#startScreen').classList.add('hidden'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
   try{ await loadSongData(selectedSong); }catch(e){ console.error(e); $('#loadingText').textContent='読み込み失敗。戻ってもう一度お試しください。'; return; }
-  $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
+  $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.bake(AudioEngine.sfxType); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
   const cd=$('#countdown'); cd.classList.remove('hidden'); let n=3; const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart();} else showN(); },900); }
 function reallyStart(){ G.started=true; G.paused=false; G.ended=false; AudioEngine.play(0); updateHUD(); }
@@ -439,7 +439,7 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
 function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
 const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
 function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
-function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.hit(); } }
+function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.bake(id).then(()=>AudioEngine.hit()); } }
 function applySpeed(){ const lbl='\u00d7'+noteSpeed.toFixed(1); const r=$('#speedRange'); if(r)r.value=noteSpeed; const a=$('#speedVal'); if(a)a.textContent=lbl; const b=$('#speedValOpt'); if(b)b.textContent=lbl; }
 function setNoteSpeed(v){ noteSpeed=Math.min(3,Math.max(0.5,Math.round(v*10)/10)); try{localStorage.setItem('pk_speed',String(noteSpeed));}catch(e){} applySpeed(); }
 function applyLite(){ stage.classList.toggle('lite',LITE); const b=$('#liteToggle'); if(b){b.textContent=LITE?'ON':'OFF'; b.classList.toggle('on',LITE);} resize(); }
@@ -498,7 +498,7 @@ const FX={ canvas:null, ctx:null, parts:[], raf:0, cols:['#ff8fe0','#ffd96e','#7
 function inGameplay(){ return !!(G&&G.started&&!G.paused&&!G.ended); }
 let _audioUnlocked=false;
 function unlockAudioOnce(){ if(_audioUnlocked)return; _audioUnlocked=true; AudioEngine.unlock(); }
-document.addEventListener('pointerdown',e=>{ unlockAudioOnce(); if(!inGameplay()) FX.burst(e.clientX,e.clientY); },{passive:true});
+document.addEventListener('pointerdown',e=>{ unlockAudioOnce(); if(!(G&&!G.ended)) FX.burst(e.clientX,e.clientY); },{passive:true});
 
 async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); resize(); buildStars(); FX.init();
   Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
