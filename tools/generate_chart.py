@@ -36,7 +36,7 @@ def make_charts(path, seed=7, bpm_override=None):
         c = at(cent, cent_times, t)
         return 0 if c <= qs[0] else 1 if c <= qs[1] else 2 if c <= qs[2] else 3
     rng = np.random.default_rng(seed)
-    FLICK_DIRS = ['up','up','up','left','right']
+    FLICK_DIRS = ['up']
     def build(min_gap, min_lane_gap, energy_cut, strength_pct, hold_prob, chord_prob, flick_prob):
         picked = []; last_any = -10; last_lane = [-10]*4
         scut = np.percentile(onset_strengths, strength_pct)
