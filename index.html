@@ -95,6 +95,22 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .ss-title-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%;padding:14px 16px 6px;pointer-events:auto;}
 .ss-title{display:flex;flex-direction:column;align-items:flex-start;}
 .crown{color:var(--gold);font-size:20px;filter:drop-shadow(0 0 8px rgba(255,200,120,.8));margin-bottom:-4px;}
+#secretCrown{cursor:pointer;pointer-events:auto;padding:6px 10px;margin:-6px -6px -10px;border-radius:50%;transition:transform .15s;}
+#secretCrown:active{transform:scale(1.3) rotate(-8deg);}
+#secretScreen{justify-content:flex-start;padding:0;background:linear-gradient(180deg,#2a1656 0%,#1a0d37 60%,#120929 100%);}
+.secret-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px 24px 60px;text-align:center;}
+.secret-crown{font-size:62px;color:var(--gold);filter:drop-shadow(0 0 18px rgba(255,200,120,.85));animation:floaty 3s ease-in-out infinite;}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+.secret-h1{font-family:'Mochiy Pop One';font-size:26px;color:#fff;text-shadow:0 0 14px rgba(255,150,230,.6);margin:0;}
+.secret-sub{font-size:13px;color:#e8d6ff;opacity:.9;}
+.global-hero{margin-top:8px;padding:18px 28px;border-radius:22px;background:linear-gradient(160deg,rgba(255,150,230,.22),rgba(150,110,255,.22));border:2px solid rgba(255,220,150,.5);box-shadow:0 10px 30px rgba(180,90,255,.35),inset 0 0 0 1px rgba(255,255,255,.12);}
+.gh-num{font-family:'Mochiy Pop One';font-size:46px;line-height:1;color:#fff;text-shadow:0 0 18px rgba(255,200,120,.8),0 0 6px rgba(255,150,230,.7);}
+.gh-lbl{font-size:13px;color:#ffe7a8;margin-top:8px;letter-spacing:.04em;}
+.stat-cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+.stat-card{min-width:96px;padding:18px 16px;border-radius:18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,200,255,.08);}
+.sc-num{font-family:'Mochiy Pop One';font-size:30px;color:var(--gold);text-shadow:0 0 12px rgba(255,200,120,.5);}
+.sc-lbl{font-size:12px;color:#e8d6ff;margin-top:4px;}
+.secret-msg{margin-top:14px;font-family:'Mochiy Pop One';font-size:15px;color:#ffd9f2;}
 .ss-title h1{font-family:'Cinzel',serif;font-weight:700;font-size:32px;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffe9c0 55%,#f0c062);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(120,60,160,.5));}
 .ss-title .sub{font-size:11px;color:#ffe7a8;letter-spacing:.16em;margin-top:5px;}
 .ss-title .sub::before,.ss-title .sub::after{content:'\2727';margin:0 6px;color:#cdb6f0;}
@@ -329,7 +345,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       <div class="curr"><div class="coin-pill"><span class="ic">&#129689;</span><span id="coinVal">200</span></div><button id="gearBtn">&#9881;</button></div>
     </div>
     <div class="ss-title-row">
-      <div class="ss-title"><span class="crown">&#9819;</span><h1>MUSIC SELECT</h1><div class="sub">楽曲を選んでください</div></div>
+      <div class="ss-title"><span class="crown" id="secretCrown" title="?">&#9819;</span><h1>MUSIC SELECT</h1><div class="sub">楽曲を選んでください</div></div>
       <div class="ss-actions">
         <div class="pill-btn" id="favBtn"><span class="ic">&#9733;</span>お気に入り</div>
         <div class="pill-btn" id="importBtn"><span class="ic">&#43;</span>mp3で遊ぶ</div>
@@ -338,6 +354,22 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="tabs" id="tabs"></div>
     <div class="song-list" id="songList"></div>
     <div class="bottom-nav" id="bottomNav"></div>
+  </div>
+
+  <div id="secretScreen" class="screen hidden">
+    <div class="shop-head"><div class="back-link" id="secretBack" style="position:static">&#8592; 楽曲へもどる</div></div>
+    <div class="secret-wrap">
+      <div class="secret-crown">&#9819;</div>
+      <h1 class="secret-h1">ひみつのきろく</h1>
+      <div class="secret-sub">いつもあそんでくれてありがとう！</div>
+      <div class="global-hero"><div class="gh-num" id="stGlobal">&#8230;</div><div class="gh-lbl">みんなの合計プレイ回数</div></div>
+      <div class="stat-cards">
+        <div class="stat-card"><div class="sc-num" id="stPlays">0</div><div class="sc-lbl">あなたのプレイ</div></div>
+        <div class="stat-card"><div class="sc-num" id="stClears">0</div><div class="sc-lbl">クリア回数</div></div>
+        <div class="stat-card"><div class="sc-num" id="stFc">0</div><div class="sc-lbl">フルコンボ</div></div>
+      </div>
+      <div class="secret-msg" id="secretMsg"></div>
+    </div>
   </div>
 
   <div id="shopScreen" class="screen hidden">
@@ -410,6 +442,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="settings-card"><h3>&#9881; せってい</h3>
       <div class="set-row"><span class="k">音量</span><input type="range" id="volRange" min="0" max="100" value="85"></div>
       <div class="set-row"><span class="k">音ズレ調整</span><div class="cal-ctrl"><button id="calMinus">&#8722;</button><span id="calVal">0 ms</span><button id="calPlus">&#65291;</button></div></div>
+      <div class="set-row"><span class="k">タップ音オフセット</span><div class="cal-ctrl"><button id="sfxOffMinus">&#8722;</button><span id="sfxOffVal">0 ms</span><button id="sfxOffPlus">&#65291;</button></div></div>
       <div class="set-row"><span class="k">軽量モード</span><button class="toggle" id="liteToggle">OFF</button></div>
       <div class="set-note">動作が重いときにON（発光や解像度を下げて軽くします）</div>
       <div class="set-row"><span class="k">キャラを表示</span><button class="toggle on" id="charToggle">ON</button></div>

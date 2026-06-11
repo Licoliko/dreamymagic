@@ -55,7 +55,7 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,sfxType:'shan',_noise:null,_buffers:{},
+  previewSrc:null,previewing:false,sfxType:'shan',sfxOffset:0,_noise:null,_buffers:{},
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
   unlock(){ try{ this.init(); if(this.ctx.state==='suspended') this.ctx.resume(); this.bake(this.sfxType); }catch(e){} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
@@ -102,7 +102,7 @@ const AudioEngine={
       default:     voice('sine',1568,0.13,0.42,{send:1});
     } },
   async bake(type){ try{ if(!type||type==='none') return null; if(this._buffers[type]) return this._buffers[type]; const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!OC) return null; const sr=(this.ctx&&this.ctx.sampleRate)||44100; const off=new OC(1,Math.ceil(sr*0.7),sr); this._synth(off,off.destination,0,type); const buf=await off.startRendering(); this._buffers[type]=buf; return buf; }catch(e){ return null; } },
-  hit(){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const buf=this._buffers[this.sfxType]; if(buf){ const s=ctx.createBufferSource(); s.buffer=buf; s.connect(this.gain); s.start(); } else { this.bake(this.sfxType); } }catch(e){} },
+  hit(){ if(this.sfxType==='none'||!this.sfxType) return; try{ const ctx=this.ctx; if(!ctx) return; const buf=this._buffers[this.sfxType]; if(buf){ const s=ctx.createBufferSource(); s.buffer=buf; s.connect(this.gain); const w=ctx.currentTime+(this.sfxOffset||0)/1000; s.start(w>ctx.currentTime?w:0); } else { this.bake(this.sfxType); } }catch(e){} },
 };
 
 /* ============ in-browser auto chart (time-domain) ============ */
@@ -152,7 +152,7 @@ const AutoChart={
 };
 
 /* ============ game state ============ */
-let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85;
+let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85, sfxOffsetMs=0;
 const DIFF_NAMES={EASY:'EASY',NORMAL:'NORMAL',HARD:'HARD',VERYHARD:'VERY HARD'};
 const LENGTHS={'30':{sec:30,label:'30秒'}, '60':{sec:60,label:'1分'}, 'FULL':{sec:Infinity,label:'フル'}};
 function curLimit(){ return Math.min(LENGTHS[lengthKey].sec, selectedSong.duration); }
@@ -333,7 +333,7 @@ async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
   $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.bake(AudioEngine.sfxType); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
   const cd=$('#countdown'); cd.classList.remove('hidden'); let n=3; const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart();} else showN(); },900); }
-function reallyStart(){ G.started=true; G.paused=false; G.ended=false; AudioEngine.play(0); updateHUD(); }
+function reallyStart(){ G.started=true; G.paused=false; G.ended=false; Stats.addPlay(); GlobalCount.hit(); AudioEngine.play(0); updateHUD(); }
 function onSrcEnded(){ if(G&&!G.ended&&songTime()>=G.limit-0.4) endGame(); }
 function clearReward(){ if(G.failed) return {total:0,parts:[]};
   const lenF=lengthKey==='30'?0.5:lengthKey==='60'?0.75:1.0; const base=Math.round({EASY:30,NORMAL:50,HARD:80,VERYHARD:110}[diffKey]*lenF);
@@ -358,6 +358,7 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
+  if(!G.failed) Stats.addClear(fullCombo);
   $('#resDiff').textContent=diffKey;
   const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
   $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
@@ -436,7 +437,8 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
     grid.appendChild(card); }); }
-function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); }catch(e){} }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); const so=parseInt(localStorage.getItem('pk_sfxoff'),10); if(!isNaN(so)) sfxOffsetMs=Math.min(150,Math.max(-100,so)); AudioEngine.sfxOffset=sfxOffsetMs; }catch(e){} }
+function syncSfxOff(){ AudioEngine.sfxOffset=sfxOffsetMs; const e=$('#sfxOffVal'); if(e) e.textContent=(sfxOffsetMs>0?'+':'')+sfxOffsetMs+' ms'; }
 const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
 function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
 function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.bake(id).then(()=>AudioEngine.hit()); } }
@@ -478,6 +480,9 @@ $('#volRange').oninput=(e)=>setVol(e.target.value/100);
 $('#pauseVol').oninput=(e)=>setVol(e.target.value/100);
 $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
+$('#sfxOffMinus').onclick=()=>{ sfxOffsetMs=Math.max(-100,sfxOffsetMs-5); try{localStorage.setItem('pk_sfxoff',String(sfxOffsetMs));}catch(e){} syncSfxOff(); AudioEngine.unlock(); AudioEngine.hit(); };
+$('#sfxOffPlus').onclick=()=>{ sfxOffsetMs=Math.min(150,sfxOffsetMs+5); try{localStorage.setItem('pk_sfxoff',String(sfxOffsetMs));}catch(e){} syncSfxOff(); AudioEngine.unlock(); AudioEngine.hit(); };
+{ const cr=$('#secretCrown'); if(cr) cr.onclick=openSecret; const sb=$('#secretBack'); if(sb) sb.onclick=closeSecret; }
 $('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
 $('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
 { const r=$('#speedRange'); if(r) r.oninput=(e)=>setNoteSpeed(parseFloat(e.target.value)); const u=$('#speedUp'); if(u)u.onclick=()=>setNoteSpeed(noteSpeed+0.1); const d=$('#speedDown'); if(d)d.onclick=()=>setNoteSpeed(noteSpeed-0.1); }
@@ -489,6 +494,23 @@ function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ cons
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
+/* ============ play stats + secret page ============ */
+const Stats={ plays:0, clears:0, fc:0,
+  load(){ try{ this.plays=+localStorage.getItem('pk_plays')||0; this.clears=+localStorage.getItem('pk_clears')||0; this.fc=+localStorage.getItem('pk_fc')||0; }catch(e){} },
+  save(){ try{ localStorage.setItem('pk_plays',this.plays); localStorage.setItem('pk_clears',this.clears); localStorage.setItem('pk_fc',this.fc); }catch(e){} },
+  addPlay(){ this.plays++; this.save(); },
+  addClear(fc){ this.clears++; if(fc)this.fc++; this.save(); } };
+/* 全ユーザー共通のプレイ回数カウンター (Abacus / 登録不要の無料カウンターAPI)
+   ※ namespace と key は好きな値に変更可。公開キーなので個人情報は入れないこと。 */
+const GlobalCount={ base:'https://abacus.jasoncameron.dev', ns:'pastel-kingdom-rhythm', key:'plays', value:null,
+  hit(){ try{ fetch(`${this.base}/hit/${this.ns}/${this.key}`).then(r=>r.ok?r.json():null).then(d=>{ if(d&&typeof d.value==='number'){ this.value=d.value; updateGlobalUI(); } }).catch(()=>{}); }catch(e){} },
+  get(){ try{ fetch(`${this.base}/get/${this.ns}/${this.key}`).then(async r=>{ if(r.status===404){ this.value=0; updateGlobalUI(); return; } if(!r.ok) return; const d=await r.json(); if(d&&typeof d.value==='number'){ this.value=d.value; updateGlobalUI(); } }).catch(()=>{}); }catch(e){} } };
+function updateGlobalUI(){ const e=$('#stGlobal'); if(e) e.textContent=(GlobalCount.value==null?'\u2026':GlobalCount.value.toLocaleString()); }
+function renderSecret(){ const set=(id,v)=>{ const e=$(id); if(e)e.textContent=v.toLocaleString(); }; set('#stPlays',Stats.plays); set('#stClears',Stats.clears); set('#stFc',Stats.fc); updateGlobalUI(); GlobalCount.get();
+  const p=Stats.plays; const msg = p>=100?'マスター級！やりこみすぎっ！？ ☆': p>=50?'もう立派な常連さんだね♪': p>=20?'たくさん遊んでくれてうれしいな！': p>=5?'その調子っ、いっぱい遊んでね♪': p>=1?'これからもよろしくねっ☆':'さあ、最初のプレイをはじめよう！'; const m=$('#secretMsg'); if(m)m.textContent=msg; }
+function openSecret(){ renderSecret(); $('#songSelectScreen').classList.add('hidden'); $('#secretScreen').classList.remove('hidden'); }
+function closeSecret(){ $('#secretScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); }
+
 /* ============ touch particle FX (menus) + audio unlock ============ */
 const FX={ canvas:null, ctx:null, parts:[], raf:0, cols:['#ff8fe0','#ffd96e','#7fd0ff','#c19bff','#ffffff'],
   init(){ this.canvas=document.getElementById('fxCanvas'); if(!this.canvas)return; this.ctx=this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize',()=>this.resize()); },
@@ -500,8 +522,8 @@ let _audioUnlocked=false;
 function unlockAudioOnce(){ if(_audioUnlocked)return; _audioUnlocked=true; AudioEngine.unlock(); }
 document.addEventListener('pointerdown',e=>{ unlockAudioOnce(); if(!(G&&!G.ended)) FX.burst(e.clientX,e.clientY); },{passive:true});
 
-async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); resize(); buildStars(); FX.init();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
+async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); Stats.load(); resize(); buildStars(); FX.init();
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); syncSfxOff(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }
