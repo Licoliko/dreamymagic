@@ -37,7 +37,8 @@ const noteImgs={}; let CUR_NOTE=NOTE_SKINS[0];
 function loadNoteSkin(skin){ if(!skin||skin.kind==='draw'||noteImgs[skin.id])return; const img=new Image(); const rec={img,ready:false,aspect:1}; noteImgs[skin.id]=rec; img.onload=()=>{ rec.ready=true; rec.aspect=img.naturalHeight/(img.naturalWidth/4); }; img.src=skin.sheet; }
 function applyNoteSkin(){ CUR_NOTE=noteSkinById(NoteStore.equipped); loadNoteSkin(CUR_NOTE); }
 let DPR=1,W=0,H=0,geo={};
-let LITE=false, SHOW_CHAR=true, noteSpeed=1.0;
+let LITE=false, SHOW_CHAR=true, noteSpeed=1.0, laneBg='black', laneBgOpacity=0.35;
+const LANE_BGS=[{id:'none',name:'なし'},{id:'white',name:'白'},{id:'black',name:'黒'}];
 
 function resize(){ const r=stage.getBoundingClientRect(); DPR=Math.min(window.devicePixelRatio||1, LITE?1:2); W=r.width; H=r.height;
   canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); computeGeo(); }
@@ -216,7 +217,7 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
   for(let i=0;i<LANES;i++){ const flash=G.laneFlash[i]; if(flash>0.01||G.lanePressed[i]){ const a=Math.max(flash,G.lanePressed[i]?0.18:0); const lx=botX[i]-geo.laneW/2,rx=botX[i]+geo.laneW/2,ltx=cx+(lx-cx)*0.17,rtx=cx+(rx-cx)*0.17;
       const grd=ctx.createLinearGradient(0,topY,0,hitY); grd.addColorStop(0,'rgba(255,255,255,0)'); grd.addColorStop(1,hexA(LANE_COLORS[i].a,a*0.55));
       ctx.beginPath(); ctx.moveTo(ltx,topY); ctx.lineTo(rtx,topY); ctx.lineTo(rx,hitY+18); ctx.lineTo(lx,hitY+18); ctx.closePath(); ctx.fillStyle=grd; ctx.fill(); } G.laneFlash[i]*=0.86; }
-  const lg=ctx.createLinearGradient(0,hitY-4,0,hitY+4); lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(.5,'rgba(255,255,255,.9)'); lg.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=lg; ctx.fillRect(botX[0]-geo.laneW*0.7,hitY-3,(botX[3]-botX[0])+geo.laneW*1.4,6);
+  if(laneBg!=='none'){ const lc=(laneBg==='black')?'0,0,0':'255,255,255'; const lx=botX[0]-geo.laneW*0.5, rx=botX[3]+geo.laneW*0.5; const ltx=cx+(lx-cx)*0.17, rtx=cx+(rx-cx)*0.17; ctx.beginPath(); ctx.moveTo(ltx,topY); ctx.lineTo(rtx,topY); ctx.lineTo(rx,hitY+18); ctx.lineTo(lx,hitY+18); ctx.closePath(); ctx.fillStyle=`rgba(${lc},${laneBgOpacity})`; ctx.fill(); }
   for(let i=0;i<LANES;i++) drawCircle(botX[i],hitY,geo.laneW*0.34,LANE_COLORS[i],Math.max(G.laneFlash[i],G.lanePressed[i]?0.4:0.15));
   const travel=G.travel;
   for(const n of G.notes){ if(n.state==='done'||n.state==='miss') continue; const dt=n.t-t;
@@ -437,10 +438,13 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
     grid.appendChild(card); }); }
-function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); const so=parseInt(localStorage.getItem('pk_sfxoff'),10); if(!isNaN(so)) sfxOffsetMs=Math.min(150,Math.max(-100,so)); AudioEngine.sfxOffset=sfxOffsetMs; }catch(e){} }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); const so=parseInt(localStorage.getItem('pk_sfxoff'),10); if(!isNaN(so)) sfxOffsetMs=Math.min(150,Math.max(-100,so)); AudioEngine.sfxOffset=sfxOffsetMs; const lb=localStorage.getItem('pk_lanebg'); if(lb&&['none','white','black'].includes(lb)) laneBg=lb; const lo=parseInt(localStorage.getItem('pk_lanebgop'),10); if(!isNaN(lo)) laneBgOpacity=Math.min(100,Math.max(5,lo))/100; }catch(e){} }
 function syncSfxOff(){ AudioEngine.sfxOffset=sfxOffsetMs; const e=$('#sfxOffVal'); if(e) e.textContent=(sfxOffsetMs>0?'+':'')+sfxOffsetMs+' ms'; }
 const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
 function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
+function renderLaneBgSel(){ const wrap=$('#laneBgSel'); if(!wrap)return; wrap.innerHTML=''; LANE_BGS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(laneBg===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setLaneBg(s.id); wrap.appendChild(b); }); }
+function setLaneBg(id){ laneBg=id; try{localStorage.setItem('pk_lanebg',id);}catch(e){} renderLaneBgSel(); }
+function syncLaneBgOp(){ const e=$('#laneBgOpVal'); if(e) e.textContent=Math.round(laneBgOpacity*100)+' %'; }
 function setHitSound(id){ AudioEngine.sfxType=id; try{localStorage.setItem('pk_sfxtype',id);}catch(e){} renderSfxSel(); if(id!=='none'){ AudioEngine.unlock(); AudioEngine.bake(id).then(()=>AudioEngine.hit()); } }
 function applySpeed(){ const lbl='\u00d7'+noteSpeed.toFixed(1); const r=$('#speedRange'); if(r)r.value=noteSpeed; const a=$('#speedVal'); if(a)a.textContent=lbl; const b=$('#speedValOpt'); if(b)b.textContent=lbl; }
 function setNoteSpeed(v){ noteSpeed=Math.min(3,Math.max(0.5,Math.round(v*10)/10)); try{localStorage.setItem('pk_speed',String(noteSpeed));}catch(e){} applySpeed(); }
@@ -484,6 +488,8 @@ $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
 $('#sfxOffMinus').onclick=()=>{ sfxOffsetMs=Math.max(-100,sfxOffsetMs-5); try{localStorage.setItem('pk_sfxoff',String(sfxOffsetMs));}catch(e){} syncSfxOff(); AudioEngine.unlock(); AudioEngine.hit(); };
 $('#sfxOffPlus').onclick=()=>{ sfxOffsetMs=Math.min(150,sfxOffsetMs+5); try{localStorage.setItem('pk_sfxoff',String(sfxOffsetMs));}catch(e){} syncSfxOff(); AudioEngine.unlock(); AudioEngine.hit(); };
 { const cr=$('#secretCrown'); if(cr) cr.onclick=openSecret; const sb=$('#secretBack'); if(sb) sb.onclick=closeSecret; }
+$('#laneBgOpMinus')&&($('#laneBgOpMinus').onclick=()=>{ laneBgOpacity=Math.max(0.05,Math.round((laneBgOpacity-0.05)*100)/100); try{localStorage.setItem('pk_lanebgop',String(Math.round(laneBgOpacity*100)));}catch(e){} syncLaneBgOp(); });
+$('#laneBgOpPlus')&&($('#laneBgOpPlus').onclick=()=>{ laneBgOpacity=Math.min(1,Math.round((laneBgOpacity+0.05)*100)/100); try{localStorage.setItem('pk_lanebgop',String(Math.round(laneBgOpacity*100)));}catch(e){} syncLaneBgOp(); });
 $('#liteToggle').onclick=()=>{ LITE=!LITE; try{localStorage.setItem('pk_lite',LITE?'1':'0');}catch(e){} applyLite(); };
 $('#charToggle').onclick=()=>{ SHOW_CHAR=!SHOW_CHAR; try{localStorage.setItem('pk_char',SHOW_CHAR?'1':'0');}catch(e){} applyChar(); };
 { const r=$('#speedRange'); if(r) r.oninput=(e)=>setNoteSpeed(parseFloat(e.target.value)); const u=$('#speedUp'); if(u)u.onclick=()=>setNoteSpeed(noteSpeed+0.1); const d=$('#speedDown'); if(d)d.onclick=()=>setNoteSpeed(noteSpeed-0.1); }
@@ -524,7 +530,7 @@ function unlockAudioOnce(){ if(_audioUnlocked)return; _audioUnlocked=true; Audio
 document.addEventListener('pointerdown',e=>{ unlockAudioOnce(); if(!(G&&!G.ended)) FX.burst(e.clientX,e.clientY); },{passive:true});
 
 async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); Stats.load(); resize(); buildStars(); FX.init();
-  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); syncSfxOff(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
+  Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); syncSfxOff(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); renderLaneBgSel(); syncLaneBgOp(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
   await loadManifest(); renderSongs(); }

@@ -308,7 +308,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #loading{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,10,45,.9);gap:14px;}
 .spinner{width:48px;height:48px;border:5px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-#feverBanner{position:absolute;top:42%;left:50%;transform:translateX(-50%);z-index:8;font-family:'Mochiy Pop One';font-size:26px;background:linear-gradient(90deg,#ff6ec7,#ffd24a,#6fc0ff);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;pointer-events:none;filter:drop-shadow(0 0 16px rgba(255,180,90,.9));}
+#feverBanner{position:absolute;top:30%;left:50%;transform:translateX(-50%);z-index:8;font-family:'Mochiy Pop One';font-size:26px;background:linear-gradient(90deg,#ff6ec7,#ffd24a,#6fc0ff);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;pointer-events:none;filter:drop-shadow(0 0 16px rgba(255,180,90,.9));}
 #feverBanner.show{animation:feverbanner 1.4s ease;}
 @keyframes feverbanner{0%{opacity:0;transform:translateX(-50%) scale(.4)}25%{opacity:1;transform:translateX(-50%) scale(1.1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1.3)}}
 #stage.fever{animation:feverbg .4s infinite;}
@@ -451,6 +451,8 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       <div class="set-note">動作が重いときにON（発光や解像度を下げて軽くします）</div>
       <div class="set-row"><span class="k">キャラを表示</span><button class="toggle on" id="charToggle">ON</button></div>
       <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="k">タップ音</span><div class="sfxsel" id="sfxSel"></div></div>
+      <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="k">レーン背景</span><div class="sfxsel" id="laneBgSel"></div></div>
+      <div class="set-row"><span class="k">背景の濃さ</span><div class="cal-ctrl"><button id="laneBgOpMinus">&#8722;</button><span id="laneBgOpVal">35 %</span><button id="laneBgOpPlus">&#65291;</button></div></div>
       <div class="set-row"><span class="k">ノーツ速度</span><div class="speed-set"><input type="range" id="speedRange" min="0.5" max="3" step="0.1" value="1"><span id="speedVal">&#215;1.0</span></div></div>
       <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="k">キー設定（PC）</span><div class="keycfg" id="keyCfg"></div><div class="set-note" style="margin:0">変えたいキーをタップ → 新しいキーを押してね</div></div>
       <button class="btn" id="closeSettings" style="width:100%;padding:12px;">とじる</button>
