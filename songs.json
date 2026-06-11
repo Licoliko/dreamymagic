@@ -101,6 +101,63 @@
       "chart": "songs/seaoff/chart.json",
       "preview": 60,
       "jacket": "songs/seaoff/jacket.webp"
+    },
+    {
+      "id": "karushant",
+      "title": "ガールズバンドの対バン",
+      "artist": "Unknown",
+      "sub": "",
+      "genres": [
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ff9ad4",
+      "c2": "#9b6bff",
+      "bpm": 143.6,
+      "duration": 252.24,
+      "audio": "songs/karushant/audio.mp3",
+      "chart": "songs/karushant/chart.json",
+      "jacket": "songs/karushant/jacket.webp",
+      "preview": 75.7
+    },
+    {
+      "id": "ribbon",
+      "title": "リボンの勇気",
+      "artist": "Unknown",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#d4a0ff",
+      "c2": "#ffd6f0",
+      "bpm": 136.0,
+      "duration": 200.0,
+      "audio": "songs/ribbon/audio.mp3",
+      "chart": "songs/ribbon/chart.json",
+      "jacket": "songs/ribbon/jacket.webp",
+      "preview": 60.0
+    },
+    {
+      "id": "nyanmegane",
+      "title": "にゃんメガネ朝",
+      "artist": "Unknown",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#7fd0ff",
+      "c2": "#ffe9a0",
+      "bpm": 172.3,
+      "duration": 195.4,
+      "audio": "songs/nyanmegane/audio.mp3",
+      "chart": "songs/nyanmegane/chart.json",
+      "jacket": "songs/nyanmegane/jacket.webp",
+      "preview": 58.0
     }
   ]
 }
