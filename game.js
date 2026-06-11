@@ -301,7 +301,7 @@ async function openOptions(song){
   AudioEngine.stopPreview(); resetPreviewBtn();
   $('#optJacket').innerHTML=jacketHTML(song); $('#optTitle').textContent=song.title; $('#optSub').textContent=(song.artist||'')+(song.sub?(' ・ '+song.sub):''); $('#optBpm').textContent='読み込み中…';
   $('#diffSelect').innerHTML='<div class="opt-pill"><div class="pn">…</div></div>'; $('#lengthSelect').innerHTML='';
-  $('#songSelectScreen').classList.add('hidden'); $('#startScreen').classList.remove('hidden');
+  $('#songSelectScreen').classList.add('hidden'); $('#startScreen').classList.remove('hidden'); { const c=$('#previewVol'); if(c)c.value=Math.round(volume*100); }
   try{ await loadSongData(song); }
   catch(e){ console.error(e); $('#optBpm').textContent='読み込み失敗'; toast('曲を読み込めませんでした'); return; }
   selectedSong=song;
@@ -394,7 +394,7 @@ function toSongSelect(){ AudioEngine.stop(); AudioEngine.stopPreview(); resetPre
 let toastTimer=null;
 function toast(msg){ const el=$('#toast'); el.innerHTML=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1900); }
 function syncCal(){ $('#calVal').textContent=latencyMs+' ms'; }
-function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b=$('#pauseVol'); if(a)a.value=Math.round(v*100); if(b)b.value=Math.round(v*100); }
+function setVol(v){ volume=v; AudioEngine.setVolume(v); const a=$('#volRange'),b=$('#pauseVol'),c=$('#previewVol'); if(a)a.value=Math.round(v*100); if(b)b.value=Math.round(v*100); if(c)c.value=Math.round(v*100); }
 /* key config */
 let rebindLane=-1;
 function loadKeys(){ try{ const k=localStorage.getItem('pk_keys'); if(k){ const arr=JSON.parse(k); if(Array.isArray(arr)&&arr.length===4) LANE_KEYS=arr.map(x=>String(x).toLowerCase()); } }catch(e){} }
@@ -478,6 +478,7 @@ $('#gearBtn').onclick=()=>{ $('#volRange').value=Math.round(volume*100); rebindL
 $('#closeSettings').onclick=()=>{ rebindLane=-1; renderKeyConfig(); $('#settingsPopup').classList.add('hidden'); };
 $('#volRange').oninput=(e)=>setVol(e.target.value/100);
 $('#pauseVol').oninput=(e)=>setVol(e.target.value/100);
+$('#previewVol').oninput=(e)=>setVol(e.target.value/100);
 $('#calMinus').onclick=()=>{ latencyMs-=10; syncCal(); };
 $('#calPlus').onclick=()=>{ latencyMs+=10; syncCal(); };
 $('#sfxOffMinus').onclick=()=>{ sfxOffsetMs=Math.max(-100,sfxOffsetMs-5); try{localStorage.setItem('pk_sfxoff',String(sfxOffsetMs));}catch(e){} syncSfxOff(); AudioEngine.unlock(); AudioEngine.hit(); };
