@@ -72,8 +72,9 @@ const AudioEngine={
     if(!song.duration) song.duration=this.buffer.duration;
     return this.buffer;
   },
-  play(fromSec=0){ this.stopPreview(); if(this.ctx.state==='suspended') this.ctx.resume();
-    this.src=this.ctx.createBufferSource(); this.src.buffer=this.buffer; this.src.connect(this.gain);
+  play(fromSec=0,buf){ this.stopPreview(); if(this.ctx.state==='suspended') this.ctx.resume();
+    const b=buf||this.buffer;
+    this.src=this.ctx.createBufferSource(); this.src.buffer=b; this.src.connect(this.gain);
     this.src.onended=()=>{ if(this.playing) onSrcEnded(); };
     this.src.start(0,fromSec); this.startCtxTime=this.ctx.currentTime-fromSec; this.playing=true; },
   time(){ return this.playing?(this.ctx.currentTime-this.startCtxTime):this.pausedAt; },
@@ -81,10 +82,10 @@ const AudioEngine={
   resume(){ if(this.playing)return; this.play(this.pausedAt); },
   stop(){ this.playing=false; this.pausedAt=0; try{this.src&&this.src.stop();}catch(e){} },
   setLatencyOffset(ms){ this.offset=ms/1000; },
-  async startPreview(song){ await this.ensure(song); this.stopPreview();
-    const dur=this.buffer.duration; const from = (song.preview!=null)?song.preview:Math.min(Math.max(0,dur*0.32), Math.max(0,dur-15));
+  async startPreview(song){ const buf=await this.ensure(song); this.stopPreview();
+    const dur=buf.duration; const from = (song.preview!=null)?song.preview:Math.min(Math.max(0,dur*0.32), Math.max(0,dur-15));
     const len=Math.min(15, Math.max(4, dur-from));
-    const s=this.ctx.createBufferSource(); s.buffer=this.buffer; const g=this.ctx.createGain(); g.connect(this.gain); s.connect(g);
+    const s=this.ctx.createBufferSource(); s.buffer=buf; const g=this.ctx.createGain(); g.connect(this.gain); s.connect(g);
     const now=this.ctx.currentTime; g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(Math.max(0.0002,this.vol),now+0.4);
     g.gain.setValueAtTime(Math.max(0.0002,this.vol),now+len-0.6); g.gain.exponentialRampToValueAtTime(0.0001,now+len);
     s.start(now,from,len); this.previewSrc=s; this.previewing=true;
@@ -331,10 +332,11 @@ function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#c
 async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
   $('#startScreen').classList.add('hidden'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
   try{ await loadSongData(selectedSong); }catch(e){ console.error(e); $('#loadingText').textContent='読み込み失敗。戻ってもう一度お試しください。'; return; }
+  const gameBuf=await AudioEngine.ensure(selectedSong);
   $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.bake(AudioEngine.sfxType); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
   const cd=$('#countdown'); cd.classList.remove('hidden'); let n=3; const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
-  const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart();} else showN(); },900); }
-function reallyStart(){ G.started=true; G.paused=false; G.ended=false; Stats.addPlay(); GlobalCount.hit(); AudioEngine.play(0); updateHUD(); }
+  const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart(gameBuf);} else showN(); },900); }
+function reallyStart(buf){ G.started=true; G.paused=false; G.ended=false; Stats.addPlay(); GlobalCount.hit(); AudioEngine.play(0,buf); updateHUD(); }
 function onSrcEnded(){ if(G&&!G.ended&&songTime()>=G.limit-0.4) endGame(); }
 function clearReward(){ if(G.failed) return {total:0,parts:[]};
   const lenF=lengthKey==='30'?0.5:lengthKey==='60'?0.75:1.0; const base=Math.round({EASY:30,NORMAL:50,HARD:80,VERYHARD:110}[diffKey]*lenF);
