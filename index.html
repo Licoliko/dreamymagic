@@ -71,7 +71,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .prog{height:6px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;}
 #progFill{height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--purple));transition:width .2s linear;}
 .time{font-size:9px;color:#d9c4ff;text-align:right;margin-top:3px;}
-#judge{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);z-index:7;font-family:'Mochiy Pop One';font-size:40px;font-weight:800;opacity:0;pointer-events:none;text-shadow:0 0 18px rgba(255,255,255,.6);}
+#judge{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);z-index:7;font-family:'Mochiy Pop One';font-size:20px;font-weight:800;opacity:0;pointer-events:none;text-shadow:0 0 18px rgba(255,255,255,.6);}
 #judge.show{animation:judgeshow .5s ease;}
 @keyframes judgeshow{0%{opacity:0;transform:translate(-50%,-40%) scale(.6)}25%{opacity:1;transform:translate(-50%,-52%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-58%) scale(1)}}
 .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
@@ -308,7 +308,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #loading{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,10,45,.9);gap:14px;}
 .spinner{width:48px;height:48px;border:5px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-#feverBanner{position:absolute;top:42%;left:50%;transform:translateX(-50%);z-index:8;font-family:'Mochiy Pop One';font-size:52px;background:linear-gradient(90deg,#ff6ec7,#ffd24a,#6fc0ff);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;pointer-events:none;filter:drop-shadow(0 0 16px rgba(255,180,90,.9));}
+#feverBanner{position:absolute;top:42%;left:50%;transform:translateX(-50%);z-index:8;font-family:'Mochiy Pop One';font-size:26px;background:linear-gradient(90deg,#ff6ec7,#ffd24a,#6fc0ff);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;pointer-events:none;filter:drop-shadow(0 0 16px rgba(255,180,90,.9));}
 #feverBanner.show{animation:feverbanner 1.4s ease;}
 @keyframes feverbanner{0%{opacity:0;transform:translateX(-50%) scale(.4)}25%{opacity:1;transform:translateX(-50%) scale(1.1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1.3)}}
 #stage.fever{animation:feverbg .4s infinite;}

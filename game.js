@@ -288,10 +288,10 @@ function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(
 function filteredSongs(){ let arr=allSongs().slice(); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
 function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=filteredSongs();
   if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「mp3で遊ぶ」から端末の曲を選んでね')+'</div>'; }
-  else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item'+(song.isNew?' new':'');
+  else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item';
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
-    el.innerHTML=`<div class="jacket">${song.isNew?'<span class="new-badge">NEW</span>':''}${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
+    el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
     el.onclick=()=>openOptions(song); list.appendChild(el); });
   if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=CUR_CHAR_IMG; c.alt=''; list.appendChild(c); } }
