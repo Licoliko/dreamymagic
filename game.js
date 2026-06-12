@@ -4,10 +4,18 @@ const stage=$('#stage'), canvas=$('#playfield'), ctx=canvas.getContext('2d');
 const LANES=4; let LANE_KEYS=['d','f','j','k'];
 const LANE_COLORS=[{a:'#ff8fd0',b:'#ff4fb0'},{a:'#ffd96e',b:'#f5a623'},{a:'#7fc8ff',b:'#3d8bff'},{a:'#c19bff',b:'#8b5cff'}];
 const CHARACTERS=[
-  {id:'magic', name:'Sweets', img:'assets/char.webp', ava:'assets/avatar.webp', price:0, c1:'#7a4fb0', c2:'#34205e'},
-  {id:'stella', name:'Floating', img:'assets/char_stella.webp', ava:'assets/avatar_stella.webp', price:600, c1:'#b9a0e0', c2:'#4b337e'},
-  {id:'marine', name:'Marine', img:'assets/char_marine.webp', ava:'assets/avatar_marine.webp', price:600, c1:'#6f9fe0', c2:'#243069'},
-  {id:'citron', name:'Lemon', img:'assets/char_citron.webp', ava:'assets/avatar_citron.webp', price:600, c1:'#c9d36a', c2:'#4f6f2a'},
+  {id:'magic',    name:'Sweets',   img:'assets/char.webp',          ava:'assets/avatar.webp',          price:0,   c1:'#7a4fb0', c2:'#34205e'},
+  {id:'stella',   name:'Floating', img:'assets/char_stella.webp',   ava:'assets/avatar_stella.webp',   price:600, c1:'#b9a0e0', c2:'#4b337e'},
+  {id:'marine',   name:'Marine',   img:'assets/char_marine.webp',   ava:'assets/avatar_marine.webp',   price:600, c1:'#6f9fe0', c2:'#243069'},
+  {id:'citron',   name:'Lemon',    img:'assets/char_citron.webp',   ava:'assets/avatar_citron.webp',   price:600, c1:'#c9d36a', c2:'#4f6f2a'},
+  {id:'clover',   name:'Clover',   img:'assets/char_clover.webp',   ava:'assets/avatar_clover.webp',   price:600,  c1:'#b8cf6a', c2:'#3d5e1a'},
+  {id:'honey',    name:'Honey',    img:'assets/char_honey.webp',    ava:'assets/avatar_honey.webp',    price:600,  c1:'#e8b84e', c2:'#7a4e10'},
+  {id:'berry',    name:'Berry',    img:'assets/char_berry.webp',    ava:'assets/avatar_berry.webp',    price:600,  c1:'#f06fa0', c2:'#5a1050'},
+  {id:'crystal2', name:'Crystal',  img:'assets/char_crystal2.webp', ava:'assets/avatar_crystal2.webp', price:600,  c1:'#7a9ae8', c2:'#1a2a78'},
+  {id:'nekopair', name:'ねこぺあ', img:'assets/char_nekopair.webp', ava:'assets/avatar_nekopair.webp', price:1200, c1:'#9a60e0', c2:'#3a1060'},
+  {id:'angeldemo',name:'エンジェル＆デビル', img:'assets/char_angeldemo.webp', ava:'assets/avatar_angeldemo.webp', price:1200, c1:'#c0a8f0', c2:'#5a2090'},
+  {id:'alicecat', name:'アリスねこ',img:'assets/char_alicecat.webp',ava:'assets/avatar_alicecat.webp', price:1200, c1:'#80b8f0', c2:'#183068'},
+  {id:'wolfband', name:'ウルフバンド',img:'assets/char_wolfband.webp',ava:'assets/avatar_wolfband.webp',price:1200, c1:'#e8a060', c2:'#281808'},
 ];
 function charById(id){ return CHARACTERS.find(c=>c.id===id)||CHARACTERS[0]; }
 const CharStore={ owned:new Set(['magic']), equipped:'magic',
