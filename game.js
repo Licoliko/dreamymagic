@@ -482,7 +482,7 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
   grid.className='shop-grid';
   CHARACTERS.forEach(c=>{ const owned=CharStore.owned.has(c.id), eq=CharStore.equipped===c.id;
     const lv=CharLevel.label(c.id);
-    const card=document.createElement('div'); card.className='shop-card char'+(eq?' equipped':'');
+    const card=document.createElement('div'); card.className='shop-card charcard'+(eq?' equipped':'');
     const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy">\uD83E\uDE99 '+c.price+'</button>';
     card.innerHTML='<div class="shop-portrait" style="background:linear-gradient(160deg,'+c.c1+','+c.c2+')"><img src="'+c.img+'" alt=""><div class="shop-char-lv">'+lv+'</div></div><div class="shop-name">'+c.name+'</div>'+btn;
     const b=card.querySelector('.shop-btn');
