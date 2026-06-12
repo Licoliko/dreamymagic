@@ -4,6 +4,27 @@
   },
   "songs": [
     {
+      "id": "crossing",
+      "title": "crossing signal",
+      "artist": "kuma to kuma",
+      "sub": "Live ver.",
+      "genres": [
+        "ROCK",
+        "BAND",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#5090e0",
+      "c2": "#101830",
+      "bpm": 152.0,
+      "duration": 235.0,
+      "audio": "songs/crossing/audio.mp3",
+      "chart": "songs/crossing/chart.json",
+      "jacket": "songs/crossing/jacket.webp",
+      "preview": 45.0,
+      "desc": "巨大な街の交差点、ふたりの声が夜を乗っ取る。\n歓声とノイズの境界で鳴り始めた、一度きりのライブ。\n走り続ける理由なんて、歌えばきっとわかる。\nその瞬間、世界は少しだけ自由になる。"
+    },
+    {
       "id": "moriike",
       "title": "森が息を合わせる日",
       "artist": "Unknown",
