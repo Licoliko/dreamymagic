@@ -222,7 +222,7 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
   for(let i=0;i<LANES;i++) drawCircle(botX[i],hitY,geo.laneW*0.34,LANE_COLORS[i],Math.max(G.laneFlash[i],G.lanePressed[i]?0.4:0.15));
   const travel=G.travel;
   for(const n of G.notes){ if(n.state==='done'||n.state==='miss') continue; const dt=n.t-t;
-    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=n.state==='holding'?1.0:clamp(1-dt/travel,0,1), pTail=clamp(1-tailDt/travel,0,1); if(pTail>0.001) drawHoldBody(n.lane,pHead,pTail,n.state==='holding'); }
+    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=n.state==='holding'?1.0:clamp(1-dt/travel,0,1), pTail=clamp(1-tailDt/travel,0,1); if(pHead>0.001) drawHoldBody(n.lane,pHead,pTail,n.state==='holding'); }
     if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n,clamp(1-dt/travel,0,1)); }
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
