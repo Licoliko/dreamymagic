@@ -22,8 +22,9 @@ const CharStore={ owned:new Set(['magic']), equipped:'magic',
   load(){ try{ const o=localStorage.getItem('pk_owned'); if(o) JSON.parse(o).forEach(id=>this.owned.add(id)); const e=localStorage.getItem('pk_equip'); if(e&&CHARACTERS.some(c=>c.id===e)) this.equipped=e; }catch(e){} this.owned.add('magic'); },
   save(){ try{ localStorage.setItem('pk_owned',JSON.stringify([...this.owned])); localStorage.setItem('pk_equip',this.equipped); }catch(e){} } };
 let CUR_CHAR_IMG='assets/char.webp', CUR_CHAR_AVA='assets/avatar.webp';
+function updateAvaLevel(){ const b=$('#avaLvBadge'); if(b) b.textContent=CharLevel.label(CharStore.equipped); }
 function applyCharacter(){ const c=charById(CharStore.equipped); CUR_CHAR_IMG=c.img; CUR_CHAR_AVA=c.ava;
-  const ci=$('#charImg'); if(ci)ci.src=CUR_CHAR_IMG; const av=$('#avaImg'); if(av)av.src=CUR_CHAR_AVA; const rc=$('#resChar'); if(rc)rc.src=CUR_CHAR_IMG; const pn=$('#playerName'); if(pn)pn.textContent=c.name; renderSongs(); }
+  const ci=$('#charImg'); if(ci)ci.src=CUR_CHAR_IMG; const av=$('#avaImg'); if(av)av.src=CUR_CHAR_AVA; const rc=$('#resChar'); if(rc)rc.src=CUR_CHAR_IMG; const pn=$('#playerName'); if(pn)pn.textContent=c.name; updateAvaLevel(); renderSongs(); }
 const NOTE_SKINS=[
   {id:'classic', name:'クラシック', price:0, kind:'draw'},
   {id:'energy', name:'エナジー', price:300, kind:'bar', sheet:'assets/notes/energy.webp'},
@@ -172,7 +173,7 @@ const AutoChart={
 };
 
 /* ============ game state ============ */
-let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85, sfxOffsetMs=0;
+let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85, sfxOffsetMs=0, _gameBuf=null;
 const DIFF_NAMES={EASY:'EASY',NORMAL:'NORMAL',HARD:'HARD',VERYHARD:'MASTER'};
 const LENGTHS={'30':{sec:30,label:'30秒'}, '60':{sec:60,label:'1分'}, 'FULL':{sec:Infinity,label:'フル'}};
 function curLimit(){ return Math.min(LENGTHS[lengthKey].sec, selectedSong.duration); }
@@ -379,11 +380,11 @@ function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#c
 async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
   $('#startScreen').classList.add('hidden'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
   try{ await loadSongData(selectedSong); }catch(e){ console.error(e); $('#loadingText').textContent='読み込み失敗。戻ってもう一度お試しください。'; return; }
-  const gameBuf=await AudioEngine.ensure(selectedSong);
+  const gameBuf=await AudioEngine.ensure(selectedSong); _gameBuf=gameBuf;
   $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.bake(AudioEngine.sfxType); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
   const cd=$('#countdown'); cd.classList.remove('hidden'); let n=3; const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
-  const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart(gameBuf);} else showN(); },900); }
-function reallyStart(buf){ G.started=true; G.paused=false; G.ended=false; Stats.addPlay(); GlobalCount.hit(); AudioEngine.play(0,buf); updateHUD(); }
+  const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); reallyStart();} else showN(); },900); }
+function reallyStart(){ G.started=true; G.paused=false; G.ended=false; Stats.addPlay(); GlobalCount.hit(); CharLevel.addXP(CharStore.equipped); updateAvaLevel(); AudioEngine.play(0,_gameBuf); updateHUD(); }
 function onSrcEnded(){ if(G&&!G.ended&&songTime()>=G.limit-0.4) endGame(); }
 function clearReward(){ if(G.failed) return {total:0,parts:[]};
   const lenF=lengthKey==='30'?0.5:lengthKey==='60'?0.75:1.0; const base=Math.round({EASY:30,NORMAL:50,HARD:80,VERYHARD:110}[diffKey]*lenF);
@@ -480,9 +481,10 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
       grid.appendChild(card); }); return; }
   grid.className='shop-grid';
   CHARACTERS.forEach(c=>{ const owned=CharStore.owned.has(c.id), eq=CharStore.equipped===c.id;
-    const card=document.createElement('div'); card.className='shop-card'+(eq?' equipped':'');
+    const lv=CharLevel.label(c.id);
+    const card=document.createElement('div'); card.className='shop-card char'+(eq?' equipped':'');
     const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy">\uD83E\uDE99 '+c.price+'</button>';
-    card.innerHTML='<div class="shop-portrait" style="background:linear-gradient(160deg,'+c.c1+','+c.c2+')"><img src="'+c.img+'" alt=""></div><div class="shop-name">'+c.name+'</div>'+btn;
+    card.innerHTML='<div class="shop-portrait" style="background:linear-gradient(160deg,'+c.c1+','+c.c2+')"><img src="'+c.img+'" alt=""><div class="shop-char-lv">'+lv+'</div></div><div class="shop-name">'+c.name+'</div>'+btn;
     const b=card.querySelector('.shop-btn');
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
@@ -550,7 +552,15 @@ function buildStars(){ const layer=$('#starsLayer'); for(let i=0;i<18;i++){ cons
 async function loadManifest(){ try{ const res=await fetch('songs.json'); if(!res.ok) throw new Error('manifest '+res.status); const data=await res.json();
     MANIFEST_SONGS=data.songs||[]; }
   catch(e){ console.warn('manifest load failed:',e.message); MANIFEST_SONGS=[]; } }
-/* ============ play stats + secret page ============ */
+/* ============ キャラクターレベルシステム ============ */
+const CharLevel={ MAX:100,
+  _key(id){ return `pk_clv_${id}`; },
+  get(id){ try{ return Math.min(this.MAX, Math.max(1, parseInt(localStorage.getItem(this._key(id)),10)||1)); }catch(e){ return 1; } },
+  set(id,v){ try{ localStorage.setItem(this._key(id), String(Math.min(this.MAX,Math.max(1,v)))); }catch(e){} },
+  // プレイ時に現在キャラのXPを加算（1プレイ=1~3XP, ランダム）
+  addXP(id){ const cur=this.get(id); if(cur>=this.MAX) return; const xp=1+Math.floor(Math.random()*3); this.set(id, cur+xp); },
+  // Lv表示テキスト
+  label(id){ const lv=this.get(id); return lv>=this.MAX?`Lv.MAX`:`Lv.${lv}`; } };
 const Stats={ plays:0, clears:0, fc:0,
   load(){ try{ this.plays=+localStorage.getItem('pk_plays')||0; this.clears=+localStorage.getItem('pk_clears')||0; this.fc=+localStorage.getItem('pk_fc')||0; }catch(e){} },
   save(){ try{ localStorage.setItem('pk_plays',this.plays); localStorage.setItem('pk_clears',this.clears); localStorage.setItem('pk_fc',this.fc); }catch(e){} },
