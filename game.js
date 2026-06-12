@@ -222,7 +222,7 @@ function draw(t){ ctx.clearRect(0,0,W,H); const {cx,hitY,topY,botX}=geo;
   for(let i=0;i<LANES;i++) drawCircle(botX[i],hitY,geo.laneW*0.34,LANE_COLORS[i],Math.max(G.laneFlash[i],G.lanePressed[i]?0.4:0.15));
   const travel=G.travel;
   for(const n of G.notes){ if(n.state==='done'||n.state==='miss') continue; const dt=n.t-t;
-    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=clamp(1-dt/travel,0,1), pTail=clamp(1-tailDt/travel,0,1); if(pTail>0.001) drawHoldBody(n.lane,pHead,pTail,n.state==='holding'); }
+    if(n.hold>0){ const tailDt=(n.t+n.hold)-t; const pHead=n.state==='holding'?1.0:clamp(1-dt/travel,0,1), pTail=clamp(1-tailDt/travel,0,1); if(pTail>0.001) drawHoldBody(n.lane,pHead,pTail,n.state==='holding'); }
     if(n.state==='holding') continue; if(dt>travel||dt<-WIN.GOOD-0.05) continue; drawNote(n,clamp(1-dt/travel,0,1)); }
   for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.035; if(p.life<=0){G.particles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); } ctx.globalAlpha=1; }
 function lanePos(lane,p){ const x=geo.topX[lane]+(geo.botX[lane]-geo.topX[lane])*p, y=geo.topY+(geo.hitY-geo.topY)*p, scale=0.32+0.68*p; return {x,y,scale}; }
@@ -293,7 +293,8 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item';
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
-    el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div></div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
+    el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div>${song.desc?`<div class="si-desc">${song.desc.replace(/\n/g,'<br>')}</div>`:''}</div>${song.desc?'<span class="si-more">&#8964;</span>':''}<span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
+    if(song.desc){ const more=el.querySelector('.si-more'); more.onclick=(e)=>{ e.stopPropagation(); el.classList.toggle('open'); }; }
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
     el.onclick=()=>openOptions(song); list.appendChild(el); });
   if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=CUR_CHAR_IMG; c.alt=''; list.appendChild(c); } }

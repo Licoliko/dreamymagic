@@ -8,6 +8,7 @@
       "title": "SHIBUYA ALICE RIOT",
       "artist": "Alice in Shibuya",
       "sub": "Live Version",
+      "desc": "渋谷の18時から急遽ライブが決定した。\n全国のアリスは渋谷に集合せよ。\n道に迷ったら、彼女たち渋谷アリスに続け！\nさぁ、渋谷ロックフェスの開催だ！",
       "genres": [
         "ROCK",
         "BAND",
@@ -28,6 +29,7 @@
       "title": "EXTREME NITRO BEAT",
       "artist": "Nitro Pink",
       "sub": "Extended Mix",
+      "desc": "今日、レースサーキットに現れたのは今注目のケモ耳レースクイーンだ！\nもちろん、みんなの期待してるのはレーシングカー！\n\n……だよね？",
       "genres": [
         "EDM",
         "DANCE",
@@ -48,6 +50,7 @@
       "title": "Kira-Kira Magic",
       "artist": "Pastel Kingdom",
       "sub": "Japanese Ver.",
+      "desc": "鏡の前で朝からオシャレ。\nほんの少しだけアクセントを付け加えて、キラキラになる魔法をかける。\n鏡の前で、女の子はみんな魔法使いになるの。",
       "genres": [
         "POPS",
         "KAWAII",
@@ -81,7 +84,8 @@
       "audio": "songs/sakura/audio.mp3",
       "chart": "songs/sakura/chart.json",
       "preview": 40,
-      "jacket": "songs/sakura/jacket.webp"
+      "jacket": "songs/sakura/jacket.webp",
+      "desc": "さくら並木の下、歩くだけでそこは自分だけの最高のステージになる。\n自分らしさと誇らしさをこの桜の下で見つけて。"
     },
     {
       "id": "seaoff",
@@ -100,7 +104,8 @@
       "audio": "songs/seaoff/audio.mp3",
       "chart": "songs/seaoff/chart.json",
       "preview": 60,
-      "jacket": "songs/seaoff/jacket.webp"
+      "jacket": "songs/seaoff/jacket.webp",
+      "desc": "やっとアイドルになれた彼女たちがついにライブに立つ！\nさぁ、ここからスタジアムが一体になる瞬間をイメージしてみて！"
     },
     {
       "id": "karushant",
@@ -118,7 +123,8 @@
       "audio": "songs/karushant/audio.mp3",
       "chart": "songs/karushant/chart.json",
       "jacket": "songs/karushant/jacket.webp",
-      "preview": 75.7
+      "preview": 75.7,
+      "desc": "アイドルとアイドルの魂のぶつかり合い！\nバチバチしてきたね。\n譲れないものがどちらにもあるから、\nここから先はステージの上で戦おうか。"
     },
     {
       "id": "ribbon",
