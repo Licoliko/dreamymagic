@@ -138,14 +138,14 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .si-chips{display:flex;gap:6px;flex-wrap:wrap;}
 .si-chips .chip{font-size:10px;font-weight:700;color:#3a1d50;background:linear-gradient(90deg,#ffd6ef,#cbb6ff);padding:3px 9px;border-radius:7px;}
 .si-chips .chip.g{background:linear-gradient(90deg,#bff5e0,#9fe6ff);}
-.si-desc{font-size:11.5px;color:#e8d6ff;line-height:1.75;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,210,150,.18);display:none;white-space:pre-line;}
+.si-desc{font-size:11.5px;color:#e8d6ff;line-height:1.9;margin-top:8px;padding:8px 0 10px;border-top:1px solid rgba(255,210,150,.18);display:none;white-space:pre-line;}
 .song-item.open .si-desc{display:block;}
 .si-more-btn{display:inline-block;margin-top:6px;font-size:13px;color:rgba(255,210,150,.85);cursor:pointer;user-select:none;padding:2px 6px;border-radius:6px;background:rgba(255,210,150,.08);}
 
-/* opt screen marquee */
-.opt-marquee-wrap{width:100%;overflow:hidden;background:rgba(255,255,255,.07);border-radius:8px;height:28px;display:flex;align-items:center;margin:8px 0;}
-.opt-marquee{display:inline-block;white-space:nowrap;font-size:12px;color:#e8d6ff;animation:marqueeScroll 18s linear infinite;}
-@keyframes marqueeScroll{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+/* opt screen marquee — seamless double-text loop */
+.opt-marquee-wrap{width:100%;overflow:hidden;background:rgba(255,255,255,.07);border-radius:8px;height:32px;display:flex;align-items:center;margin:8px 0;}
+.opt-marquee{display:inline-block;white-space:nowrap;font-size:12px;color:#e8d6ff;animation:marqueeScroll 14s linear infinite;}
+@keyframes marqueeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .fav-star{position:absolute;top:10px;right:12px;font-size:22px;color:rgba(255,255,255,.35);cursor:pointer;transition:.15s;}
 .fav-star.on{color:#ffcf5c;filter:drop-shadow(0 0 8px rgba(255,200,90,.9));transform:scale(1.1);}
 .empty-msg{text-align:center;color:#cdb6f0;font-size:13px;padding:36px 14px;line-height:1.8;}
@@ -190,7 +190,8 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .preview-btn{pointer-events:auto;cursor:pointer;font-weight:800;font-size:13px;color:#fff;background:rgba(60,32,110,.7);border:1.5px solid rgba(255,210,150,.5);border-radius:22px;padding:8px 22px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
 .preview-btn.playing{background:linear-gradient(90deg,#ff79c6,#b06bff);border-color:#ffe7a8;}
 .sel-label{font-size:11px;letter-spacing:.16em;color:#d9c4ff;font-weight:700;margin-bottom:6px;}
-.opt-row{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:15px;min-height:48px;}
+.opt-row{display:flex;flex-wrap:nowrap;gap:6px;margin-bottom:12px;}
+.opt-row.wrap{flex-wrap:wrap;}
 .speed-ctl{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;}
 .spd-btn{pointer-events:auto;cursor:pointer;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-family:'Mochiy Pop One';font-size:18px;line-height:1;}
 .spd-btn:active{background:rgba(255,207,92,.25);}
@@ -198,9 +199,9 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .speed-set{display:flex;align-items:center;gap:10px;}
 .speed-set input[type=range]{width:130px;}
 .speed-set span{font-family:'Mochiy Pop One';font-size:14px;color:#ffe7a8;min-width:42px;text-align:right;}
-.opt-pill{pointer-events:auto;cursor:pointer;flex:0 0 auto;min-width:60px;padding:7px 8px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);transition:.15s;}
+.opt-pill{pointer-events:auto;cursor:pointer;flex:1;min-width:0;padding:7px 4px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);transition:.15s;text-align:center;}
 .opt-pill.sel{border-color:var(--gold);background:rgba(255,207,92,.18);transform:translateY(-2px);box-shadow:0 6px 14px rgba(255,180,90,.3);}
-.opt-pill .pn{font-family:'Mochiy Pop One';font-size:13px;}
+.opt-pill .pn{font-family:'Mochiy Pop One';font-size:12px;}
 .opt-pill .pd{font-size:9px;color:#ffd9f2;margin-top:1px;}
 .back-link{pointer-events:auto;cursor:pointer;position:absolute;top:max(env(safe-area-inset-top,0),14px);left:16px;font-size:14px;color:#e0c8ff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 14px;}
 #countdown{position:absolute;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;pointer-events:none;}
@@ -398,7 +399,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
     <div class="pause-vol preview-vol"><span>&#128266; 音量</span><input type="range" id="previewVol" min="0" max="100" value="85"></div>
     <div class="opt-marquee-wrap"><span class="opt-marquee" id="optMarquee"></span></div>
     <div class="sel-label">DIFFICULTY</div><div class="opt-row" id="diffSelect"></div>
-    <div class="sel-label">LENGTH</div><div class="opt-row" id="lengthSelect"></div>
+    <div class="sel-label">LENGTH</div><div class="opt-row wrap" id="lengthSelect"></div>
     <div class="sel-label">SPEED</div><div class="speed-ctl"><button class="spd-btn" id="speedDown">&#8722;</button><div class="spd-val" id="speedValOpt">&#215;1.0</div><button class="spd-btn" id="speedUp">&#43;</button></div>
     <button class="btn" id="startBtn">START &#9834;</button>
     <div class="hint" id="playHint">タップ：4レーンを叩こう！　PC：D / F / J / K</div>
