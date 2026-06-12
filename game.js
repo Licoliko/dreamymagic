@@ -188,8 +188,34 @@ function applyJudge(j,lane){ G.counts[j]++; G.accCount++; G.accWeight+= j==='PER
     const gained=Math.round(PTS[j]*(1+Math.min(G.combo,200)*0.004)*(G.feverActive?2:1)); G.score+=gained; showScoreAdd(gained);
     if(!G.feverActive){ G.fever=Math.min(100,G.fever+(j==='PERFECT'?2.4:j==='GREAT'?1.4:0.4)); if(G.fever>=100)activateFever(); } }
   showJudge(j); updateHUD(); }
-function activateFever(){ G.feverActive=true; G.feverEnd=songTime()+7; stage.classList.add('fever'); const fb=$('#feverBanner'); fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show'); $('#feverWrap').classList.add('ready'); }
-function endFever(){ G.feverActive=false; G.fever=0; stage.classList.remove('fever'); $('#feverWrap').classList.remove('ready'); }
+function activateFever(){ G.feverActive=true; G.feverEnd=songTime()+7; stage.classList.add('fever'); const fb=$('#feverBanner'); fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show'); $('#feverWrap').classList.add('ready'); cancelAnimationFrame(_feverDance.phase); _feverDance.flip=false; _feverDance.phase=requestAnimationFrame(_updateFeverChar); }
+function endFever(){ G.feverActive=false; G.fever=0; stage.classList.remove('fever'); $('#feverWrap').classList.remove('ready'); _feverDanceReturn(); }
+
+/* フィーバー中のキャラダンス */
+const _feverDance={phase:0,flip:false,returnRaf:0};
+function _updateFeverChar(){
+  const el=$('#charImg'); if(!el||!SHOW_CHAR) return;
+  if(!G||!G.feverActive){ return; }
+  const now=performance.now()/1000;
+  const cycle=1.4, hCycle=cycle/2;
+  const t=now%cycle, half=t<hCycle;
+  // 横移動: 0→右端→0  left: -12px ↔ 40%
+  const xRatio=half?(t/hCycle):1-(t-hCycle)/hCycle;
+  const xPx=Math.round(-12 + xRatio*(innerWidth*0.38));
+  // 縦ジャンプ: sin波2回/cycle
+  const jumpY=-Math.abs(Math.sin(now*Math.PI/cycle*2))*32;
+  // 向き反転: 右向き(xRatio増加中)=そのまま、左向き=反転
+  const goingRight=half;
+  if(goingRight!==_feverDance.flip){ _feverDance.flip=goingRight; el.style.transform=goingRight?'':'scaleX(-1)'; }
+  el.style.left=xPx+'px';
+  el.style.bottom=Math.round(-jumpY)+'px';  // bottom は正値なので反転
+  _feverDance.phase=requestAnimationFrame(_updateFeverChar);
+}
+function _feverDanceReturn(){
+  const el=$('#charImg'); if(!el) return;
+  // 元の位置へ滑らかに戻す (transition に任せる)
+  el.style.transform=''; el.style.left='-12px'; el.style.bottom='0px';
+}
 function triggerHit(lane,j){ G.laneFlash[lane]=1; const x=geo.botX[lane],y=geo.hitY,col=LANE_COLORS[lane]; const n=LITE?(j==='PERFECT'?6:j==='GREAT'?3:2):(j==='PERFECT'?16:j==='GREAT'?10:6);
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5; G.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,col:col.a,size:2+Math.random()*3}); } }
 
@@ -359,7 +385,7 @@ function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const B
   const mx=Math.max(1,...bins);
   bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
 function updateScrollHint(){ const b=$('#resultBody'),h=$('#scrollHint'); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
-function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); endFever(); stage.classList.remove('playing');
+function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); cancelAnimationFrame(_feverDance.phase); endFever(); stage.classList.remove('playing');
   const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
@@ -391,7 +417,7 @@ function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true
 function pauseToggle(){ if(!G||!G.started||G.ended)return; if(G.paused)resumeGame(); else pauseGame(); }
 function resumeGame(){ if(!G||!G.paused)return; const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#10074;&#10074;'; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); G.paused=false; AudioEngine.resume();} else showN(); },700); }
-function toSongSelect(){ AudioEngine.stop(); AudioEngine.stopPreview(); resetPreviewBtn(); if(G)G.ended=true; ctx.clearRect(0,0,W,H); stage.classList.remove('playing');
+function toSongSelect(){ AudioEngine.stop(); AudioEngine.stopPreview(); resetPreviewBtn(); if(G)G.ended=true; cancelAnimationFrame(_feverDance.phase); _feverDanceReturn(); ctx.clearRect(0,0,W,H); stage.classList.remove('playing');
   $('#pauseOverlay').classList.add('hidden'); $('#resultScreen').classList.add('hidden'); $('#startScreen').classList.add('hidden');
   $('#score').textContent='00000000'; $('#comboNum').textContent='0'; $('#scoreAdd').textContent=''; $('#feverFill').style.width='0%'; $('#lifeFill').style.width='100%'; $('#lifeVal').textContent='1000'; $('#progFill').style.width='0%'; stage.classList.remove('fever');
   renderSongs(); $('#songSelectScreen').classList.remove('hidden'); }

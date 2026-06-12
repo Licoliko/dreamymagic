@@ -59,8 +59,9 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #comboNum{font-family:'Mochiy Pop One';font-size:54px;line-height:.9;color:#fff;text-shadow:0 3px 0 #b34fa0,0 0 22px rgba(255,170,240,.9);}
 .combo-pop{animation:combopop .18s ease;}
 @keyframes combopop{0%{transform:scale(1.35)}100%{transform:scale(1)}}
-.char{position:absolute;left:-12px;bottom:0;width:42%;max-width:200px;z-index:6;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:bob 2.2s ease-in-out infinite;}
+.char{position:absolute;left:-12px;bottom:0;width:30%;max-width:150px;z-index:6;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:bob 2.2s ease-in-out infinite;transition:left .25s,bottom .25s;}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+#stage.fever .char{animation:none;}
 .song-card{position:absolute;right:12px;bottom:14px;width:50%;max-width:240px;z-index:6;pointer-events:none;background:linear-gradient(160deg,rgba(70,40,120,.85),rgba(45,25,80,.9));border:1.5px solid rgba(255,210,150,.6);border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 0 20px rgba(255,200,255,.1);}
 .song-card .title{font-family:'Mochiy Pop One';font-size:14px;color:#fff;text-shadow:0 0 8px rgba(255,180,240,.7);}
 .song-card .artist{font-size:11px;color:#e0c8ff;margin-bottom:6px;}
