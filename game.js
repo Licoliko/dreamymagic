@@ -293,8 +293,8 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item';
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
-    el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div>${song.desc?`<div class="si-desc">${song.desc.replace(/\n/g,'<br>')}</div>`:''}</div>${song.desc?'<span class="si-more">&#8964;</span>':''}<span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
-    if(song.desc){ const more=el.querySelector('.si-more'); more.onclick=(e)=>{ e.stopPropagation(); el.classList.toggle('open'); }; }
+    el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div>${song.desc?`<div class="si-more-btn">&#8964; もっと見る</div><div class="si-desc">${song.desc.replace(/\n/g,'<br>')}</div>`:''}</div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
+    if(song.desc){ const btn=el.querySelector('.si-more-btn'); btn.onclick=(e)=>{ e.stopPropagation(); el.classList.toggle('open'); btn.textContent=el.classList.contains('open')?'▲ 閉じる':'▽ もっと見る'; }; }
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
     el.onclick=()=>openOptions(song); list.appendChild(el); });
   if(SHOW_CHAR){ const c=document.createElement('img'); c.className='menu-char-inline'; c.src=CUR_CHAR_IMG; c.alt=''; list.appendChild(c); } }
@@ -305,6 +305,7 @@ async function openOptions(song){
   $('#optJacket').innerHTML=jacketHTML(song); $('#optTitle').textContent=song.title; $('#optSub').textContent=(song.artist||'')+(song.sub?(' ・ '+song.sub):''); $('#optBpm').textContent='読み込み中…';
   $('#diffSelect').innerHTML='<div class="opt-pill"><div class="pn">…</div></div>'; $('#lengthSelect').innerHTML='';
   $('#songSelectScreen').classList.add('hidden'); $('#startScreen').classList.remove('hidden'); { const c=$('#previewVol'); if(c)c.value=Math.round(volume*100); }
+  { const m=$('#optMarquee'); if(m){ m.textContent=song.desc?song.desc.replace(/\n/g,'　'):song.title+' / '+(song.artist||''); m.style.animation='none'; void m.offsetWidth; m.style.animation=''; } }
   try{ await loadSongData(song); }
   catch(e){ console.error(e); $('#optBpm').textContent='読み込み失敗'; toast('曲を読み込めませんでした'); return; }
   selectedSong=song;
