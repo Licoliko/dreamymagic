@@ -34,7 +34,17 @@ const NOTE_SKINS=[
   {id:'element', name:'エレメント', price:300, kind:'bar', sheet:'assets/notes/element.webp'},
   {id:'sword', name:'つるぎ', price:300, kind:'bar', sheet:'assets/notes/sword.webp'},
   {id:'book', name:'ブック', price:300, kind:'bar', sheet:'assets/notes/book.webp'},
-  {id:'wand', name:'ステッキ', price:300, kind:'bar', sheet:'assets/notes/wand.webp'},
+  {id:'wand',         name:'ステッキ',         price:300, kind:'bar', sheet:'assets/notes/wand.webp'},
+  {id:'strawcake',    name:'ストロベリーケーキ', price:400, kind:'bar', sheet:'assets/notes/strawcake.webp'},
+  {id:'macaron',      name:'マカロン・グリッド', price:400, kind:'bar', sheet:'assets/notes/macaron.webp'},
+  {id:'jeweltart',    name:'ジュエルタルト',     price:400, kind:'bar', sheet:'assets/notes/jeweltart.webp'},
+  {id:'chocostick',   name:'チョコレートスティック', price:400, kind:'bar', sheet:'assets/notes/chocostick.webp'},
+  {id:'rollcake',     name:'ロールケーキ・ルーン', price:400, kind:'bar', sheet:'assets/notes/rollcake.webp'},
+  {id:'princess',     name:'プリンセス・ケーキ', price:400, kind:'bar', sheet:'assets/notes/princess.webp'},
+  {id:'candystick',   name:'キャンディ・ステッキ', price:400, kind:'bar', sheet:'assets/notes/candystick.webp'},
+  {id:'drinkdessert', name:'ドリンク・デザート', price:400, kind:'bar', sheet:'assets/notes/drinkdessert.webp'},
+  {id:'starfruit',    name:'星とフルーツ',       price:400, kind:'bar', sheet:'assets/notes/starfruit.webp'},
+  {id:'seasonbuffet', name:'季節のバフェ',       price:400, kind:'bar', sheet:'assets/notes/seasonbuffet.webp'},
 ];
 const NOTE_DEFAULT=['classic','energy','crystal'];
 function noteSkinById(id){ return NOTE_SKINS.find(s=>s.id===id)||NOTE_SKINS[0]; }
