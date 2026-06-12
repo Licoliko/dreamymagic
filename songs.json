@@ -4,6 +4,26 @@
   },
   "songs": [
     {
+      "id": "moriike",
+      "title": "森が息を合わせる日",
+      "artist": "Unknown",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#6db87a",
+      "c2": "#1a4428",
+      "bpm": 95.7,
+      "duration": 167.0,
+      "audio": "songs/moriike/audio.mp3",
+      "chart": "songs/moriike/chart.json",
+      "jacket": "songs/moriike/jacket.webp",
+      "preview": 40.0,
+      "desc": "ある日、森は静かに演奏を始めた。\n動物たちが奏で、少女はただ指揮をする。\n誰も知らない楽譜の先に待っているものとは——\nこれは、世界がひとつの旋律になる瞬間の物語。"
+    },
+    {
       "id": "aliceriot",
       "title": "SHIBUYA ALICE RIOT",
       "artist": "Alice in Shibuya",

@@ -326,12 +326,13 @@ function kiraJacket(id){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3
 /* ============ song list / data ============ */
 let MANIFEST_SONGS=[], sessionSongs=[];
 function allSongs(){ return MANIFEST_SONGS.concat(sessionSongs); }
+function sortedSongs(arr){ return [...arr].sort((a,b)=>{ const an=a.isNew?0:1, bn=b.isNew?0:1; return an-bn; }); }
 const TABS=[{k:'all',label:'すべて',ic:'\u266A'},{k:'POPS',label:'POPS',ic:'\u266B'},{k:'KAWAII',label:'KAWAII',ic:'\u2665'},{k:'BPM',label:'BPM',ic:'\u3030'},{k:'オリジナル',label:'オリジナル',ic:'\u265B'}];
 const NAV=[{k:'home',label:'ホーム',ic:'\uD83C\uDFF0'},{k:'music',label:'楽曲',ic:'\uD83C\uDFB5',sel:true},{k:'shop',label:'ショップ',ic:'\uD83D\uDECD\uFE0F'}];
 let curTab='all', favOnly=false; const favorites=new Set();
 function buildTabs(){ const wrap=$('#tabs'); wrap.innerHTML=''; TABS.forEach(t=>{ const el=document.createElement('div'); el.className='tab'+(t.k===curTab?' sel':''); el.innerHTML=`<span class="ic">${t.ic}</span>${t.label}`; el.onclick=()=>{ curTab=t.k; buildTabs(); renderSongs(); }; wrap.appendChild(el); }); }
 function buildNav(){ const wrap=$('#bottomNav'); wrap.innerHTML=''; NAV.forEach(n=>{ const el=document.createElement('div'); el.className='nav-item'+(n.sel?' sel':''); el.innerHTML=`<span class="ic">${n.ic}</span>${n.label}`; el.onclick=()=>{ if(n.k==='shop') openShop(); else if(!n.sel) toast(n.label+'は準備中だよ \u2728'); }; wrap.appendChild(el); }); }
-function filteredSongs(){ let arr=allSongs().slice(); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
+function filteredSongs(){ let arr=sortedSongs(allSongs()); if(favOnly) arr=arr.filter(s=>favorites.has(s.id)); if(curTab==='BPM') arr.sort((a,b)=>(a.bpm||999)-(b.bpm||999)); else if(curTab!=='all') arr=arr.filter(s=>(s.genres||[]).includes(curTab)); return arr; }
 function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=filteredSongs();
   if(!arr.length){ list.innerHTML='<div class="empty-msg">'+(allSongs().length? '該当する曲がないみたい…<br>タブやお気に入りを変えてみてね' : '曲が読み込めませんでした。<br>サーバー/GitHub Pagesで開くか、<br>「mp3で遊ぶ」から端末の曲を選んでね')+'</div>'; }
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item';
