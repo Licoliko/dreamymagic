@@ -397,6 +397,7 @@ function starsForRank(r){ return ({SS:5,S:5,A:4,B:3,C:2,D:1,F:0})[r]||0; }
 function hsKey(){ return 'pk_hs_'+selectedSong.id+'_'+diffKey+'_'+lengthKey; }
 function getHS(){ try{ return parseInt(localStorage.getItem(hsKey()),10)||0; }catch(e){ return 0; } }
 function setHS(v){ try{ localStorage.setItem(hsKey(),String(v)); }catch(e){} }
+// VERSION: 2026-06-13-v5
 function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.round(v).toLocaleString()); const start=performance.now();
   function step(now){ const p=Math.min(1,(now-start)/dur); const e=1-Math.pow(1-p,3); el.textContent=fmt(to*e); if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to); }
   requestAnimationFrame(step); }
