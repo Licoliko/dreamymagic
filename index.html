@@ -243,8 +243,8 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .res-top .res-rank{font-size:80px;}
 .res-top .res-rank-glow{width:150px;height:150px;transform:translate(-50%,-52%);}
 .res-top .res-banner{font-size:13px;padding:5px 12px;margin-top:2px;}
-.res-top .score-panel{flex:1;margin-top:0;display:flex;flex-direction:column;justify-content:center;padding:10px 10px;overflow:hidden;}
-.res-top .score-canvas{height:50px;}
+.res-top .score-panel{flex:1;margin-top:0;display:flex;flex-direction:column;justify-content:center;padding:10px;overflow:hidden;}
+.res-top .sp-score{font-size:34px;}
 .result-body::-webkit-scrollbar{width:8px;}
 .result-body::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:4px;margin:4px;}
 .result-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ffd24a,#ff79c6);border-radius:4px;border:1px solid rgba(255,255,255,.2);}
@@ -259,12 +259,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .newrec{font-family:'Mochiy Pop One';font-size:11px;color:#fff;background:linear-gradient(90deg,#b060ff,#ff60c0,#b060ff);padding:3px 12px;border-radius:7px;box-shadow:0 0 14px rgba(180,80,255,.7);animation:recPulse 1s infinite;}
 @keyframes recPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .sp-score{font-family:'Mochiy Pop One';font-size:48px;line-height:1;background:linear-gradient(180deg,#ffffff,#ffd700 50%,#ff9920);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,200,0,.6));margin:6px 0;}
-.sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;display:flex;flex-direction:column;gap:0;overflow:visible;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';margin-left:8px;}
-.num-canvas{display:block;image-rendering:auto;max-width:100%;}
-.score-canvas{height:52px;width:auto;max-width:100%;margin:4px 0;display:block;}
-.high-canvas{height:30px;width:auto;max-width:160px;display:inline-block;vertical-align:middle;}
-.jv-canvas{height:34px;width:auto;max-width:88px;display:block;margin-left:auto;}
-.combo-canvas{height:42px;width:auto;max-width:140px;display:block;margin-left:auto;}
+.sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;display:flex;flex-direction:column;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';}
 .res-coin{display:inline-flex;align-items:center;gap:8px;font-family:'Mochiy Pop One';font-size:24px;color:#ffd96e;margin:14px auto 2px;padding:8px 22px;border-radius:24px;background:rgba(60,40,20,.4);border:1.5px solid rgba(255,200,90,.5);filter:drop-shadow(0 0 12px rgba(255,200,90,.5));animation:resFade .5s .25s ease both;}
 .coin-breakdown{font-size:11px;color:#cdb6f0;text-align:center;}
 .res-charrow{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-top:10px;min-height:40px;animation:resFade .5s .3s ease both;}
@@ -276,13 +271,11 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .jrow:last-child{border-bottom:none;}
 .jrow .jk{font-family:'Mochiy Pop One';font-size:17px;}
 .jrow .jv{font-family:'Mochiy Pop One';font-size:22px;font-weight:800;}
-.jrow .jv-canvas{height:38px;width:auto;max-width:90px;display:block;}
 .jk.p{color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.5)}.jk.gr{color:#c060ff;text-shadow:0 0 10px rgba(190,80,255,.4)}.jk.gd{color:#50e080;text-shadow:0 0 10px rgba(60,220,100,.4)}.jk.ms{color:#808090}
 .combo-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1.5px solid rgba(255,255,255,.14);}
 .combo-row .ck{display:flex;align-items:center;gap:10px;font-size:13px;color:#d9c4ff;}
 .fc-badge{font-family:'Mochiy Pop One';font-size:11px;color:#2a1000;background:linear-gradient(90deg,#ffd700,#ff9920,#ffd700);padding:3px 12px;border-radius:7px;box-shadow:0 0 10px rgba(255,200,0,.5);}
 .combo-row .cv{font-family:'Mochiy Pop One';font-size:26px;color:#fff;}
-.combo-row .combo-canvas{height:46px;width:auto;max-width:150px;display:block;}
 .tp-title{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;margin-bottom:10px;}
 .histo{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:74px;padding:0 4px;}
 .histo .bar{flex:1;max-width:18px;border-radius:4px 4px 0 0;height:2px;background:linear-gradient(180deg,#ffd24a,#7fd0ff);transition:height .6s cubic-bezier(.2,1,.4,1);}
@@ -461,12 +454,12 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       </div>
       <div class="res-panel">
         <div class="judge-grid">
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_PERFECT.webp" alt="PERFECT"><canvas id="jc_perfect" class="num-canvas jv-canvas"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GREAT.webp" alt="GREAT"><canvas id="jc_great" class="num-canvas jv-canvas"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GOOD.webp" alt="GOOD"><canvas id="jc_good" class="num-canvas jv-canvas"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_MISS.webp" alt="MISS"><canvas id="jc_miss" class="num-canvas jv-canvas"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_PERFECT.webp" alt="PERFECT"><canvas id="jc_perfect" style="height:36px;display:block;margin-left:auto;"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GREAT.webp" alt="GREAT"><canvas id="jc_great" style="height:36px;display:block;margin-left:auto;"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GOOD.webp" alt="GOOD"><canvas id="jc_good" style="height:36px;display:block;margin-left:auto;"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_MISS.webp" alt="MISS"><canvas id="jc_miss" style="height:36px;display:block;margin-left:auto;"></canvas></div>
         </div>
-        <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><canvas id="comboCanvas" class="num-canvas combo-canvas"></canvas></div>
+        <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><canvas id="comboCanvas" style="height:44px;display:block;"></canvas></div>
       </div>
       <div style="text-align:center"><div class="res-coin" id="coinReward">&#129689; +0</div><div class="coin-breakdown" id="coinBreakdown"></div></div>
       <div class="res-charrow"><div class="res-bubble" id="resBubble">おつかれさま！</div><img class="res-char" id="resChar" alt=""></div>

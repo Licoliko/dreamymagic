@@ -401,64 +401,32 @@ function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.
   function step(now){ const p=Math.min(1,(now-start)/dur); const e=1-Math.pow(1-p,3); el.textContent=fmt(to*e); if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to); }
   requestAnimationFrame(step); }
 
-// ===== 画像数字描画システム =====
+// ===== 画像数字スプライト =====
 window.NumSprite = (() => {
-  const sheets = {};
-  const CELL_W = 153, CELL_H = 170;
-  function load(name) {
-    if (sheets[name]) return sheets[name];
-    const img = new Image();
-    img.src = `assets/numbers/num_${name}.webp`;
-    sheets[name] = img;
-    return img;
-  }
-  // preload
+  const sheets = {}, CELL_W=153, CELL_H=170;
+  function load(name){ if(sheets[name]) return sheets[name]; const img=new Image(); img.src='assets/numbers/num_'+name+'.webp'; sheets[name]=img; return img; }
   ['gold','pink','purple'].forEach(load);
-
-  // canvasに数字文字列を描画
-  function draw(canvas, numStr, sheetName, maxW, maxH) {
-    if (!canvas) return;
+  function draw(canvas, numStr, sheetName, maxW, maxH){
+    if(!canvas) return;
     try {
-      const ctx = canvas.getContext('2d');
-      const sheet = load(sheetName);
-      const digits = String(Math.round(numStr)).split('').filter(c => c >= '0' && c <= '9');
-      if (!digits.length) return;
-      const n = digits.length;
-      // CSSのheightを基準にスケール計算（引数maxH > インラインstyle > computedStyle）
-      const cssH = maxH || parseFloat(canvas.style.height) || parseFloat(getComputedStyle(canvas).height) || 40;
-      const scale = cssH / CELL_H;
-      const dw = Math.floor(CELL_W * scale);
-      const dh = Math.floor(CELL_H * scale);
-      canvas.width = dw * n;
-      canvas.height = dh;
-      const drawIt = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        digits.forEach((d, i) => {
-          ctx.drawImage(sheet, parseInt(d) * CELL_W, 0, CELL_W, CELL_H, i * dw, 0, dw, dh);
-        });
-      };
-      if (sheet.complete && sheet.naturalWidth) drawIt();
-      else sheet.onload = drawIt;
-    } catch(e) { console.warn('NumSprite.draw error:', e); }
+      const ctx=canvas.getContext('2d'), sheet=load(sheetName);
+      const digits=String(Math.round(numStr)).split('').filter(c=>c>='0'&&c<='9');
+      if(!digits.length) return;
+      const n=digits.length, h=maxH||40, scale=h/CELL_H;
+      const dw=Math.floor(CELL_W*scale), dh=Math.floor(CELL_H*scale);
+      canvas.width=dw*n; canvas.height=dh;
+      const drawIt=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); digits.forEach((d,i)=>ctx.drawImage(sheet,parseInt(d)*CELL_W,0,CELL_W,CELL_H,i*dw,0,dw,dh)); };
+      if(sheet.complete&&sheet.naturalWidth) drawIt(); else sheet.onload=drawIt;
+    } catch(e){ console.warn('NumSprite.draw:',e); }
   }
-
-  // countUpアニメーション付きcanvas描画
-  function countUpCanvas(canvas, to, dur, sheetName, maxW, maxH, fmt) {
-    if (!canvas) return;
-    fmt = fmt || (v => String(Math.round(v)));
-    dur = dur || 850;
-    const start = performance.now();
-    function step(now) {
-      const p = Math.min(1, (now - start) / dur);
-      const e = 1 - Math.pow(1 - p, 3);
-      draw(canvas, fmt(to * e), sheetName, maxW, maxH);
-      if (p < 1) requestAnimationFrame(step);
-      else draw(canvas, fmt(to), sheetName, maxW, maxH);
-    }
+  function countUpCanvas(canvas, to, dur, sheetName, maxW, maxH, fmt){
+    if(!canvas) return;
+    fmt=fmt||(v=>String(Math.round(v))); dur=dur||850;
+    const start=performance.now();
+    function step(now){ const p=Math.min(1,(now-start)/dur),e=1-Math.pow(1-p,3); draw(canvas,fmt(to*e),sheetName,maxW,maxH); if(p<1)requestAnimationFrame(step); else draw(canvas,fmt(to),sheetName,maxW,maxH); }
     requestAnimationFrame(step);
   }
-
-  return { draw, countUpCanvas, load };
+  return {draw, countUpCanvas, load};
 })();
 function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const BINS=13,RANGE=0.16,mid=(BINS-1)/2; const bins=new Array(BINS).fill(0);
   offsets.forEach(o=>{ let idx=Math.round((o/RANGE)*mid+mid); idx=Math.max(0,Math.min(BINS-1,idx)); bins[idx]++; });
@@ -466,6 +434,7 @@ function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const B
   bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
 function updateScrollHint(){ const b=$('#resultBody'),h=$('#scrollHint'); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
 function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); cancelAnimationFrame(_feverDance.phase); endFever(); stage.classList.remove('playing');
+  try {
   const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
@@ -489,12 +458,11 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   $('#coinBreakdown').textContent=rew.total?rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('\u3000'):(G.failed?'クリアできなかった…コインなし':'');
   const JW=WIN.PERFECT; let late=0,just=0,early=0; G.offsets.forEach(o=>{ if(o>JW)early++; else if(o<-JW)late++; else just++; });
   const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
-  $('#resultScreen').classList.remove('hidden'); $('#resultBody').scrollTop=0; setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450);
+  } catch(e){ console.error('endGame error:',e.message||e); } finally { $('#resultScreen').classList.remove('hidden'); try{$('#resultBody').scrollTop=0;}catch(e2){} setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450); } /*endgame-end*/
   countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
-  countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
-  // 画像数字でスコア描画
   NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
   countUp($('#resHigh'), newHS, 1100);
+  countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
   NumSprite.countUpCanvas($('#comboCanvas'), G.maxCombo, 800, 'purple', 0, 44);
   [['perfect',G.counts.PERFECT,150],['great',G.counts.GREAT,230],['good',G.counts.GOOD,310],['miss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>NumSprite.countUpCanvas($('#jc_'+id),v,500,'gold',0,36),d));
   buildHisto(G.offsets);
