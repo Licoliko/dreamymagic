@@ -373,7 +373,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
   <div id="songSelectScreen" class="screen">
     <div class="profile-bar">
       <div class="pf-card" id="profileBtn"><div class="ava-wrap"><img class="ava" id="avaImg" alt=""><div class="ava-lv" id="avaLvBadge">Lv.1</div></div><div class="pf-info"><div class="pf-name" id="playerName">Magic&#9834;P</div><div class="pf-exp"><i></i></div></div></div>
-      <div class="curr"><div class="coin-pill"><span class="ic">&#129689;</span><span id="coinVal">200</span></div><button id="gearBtn">&#9881;</button></div>
+      <div class="curr"><div class="coin-pill"><img src="assets/coin_sm.webp" style="width:20px;height:20px;vertical-align:middle;"><span id="coinVal">200</span></div><button id="gearBtn">&#9881;</button></div>
     </div>
     <div class="ss-title-row">
       <div class="ss-title"><span class="crown" id="secretCrown" title="?">&#9819;</span><h1>MUSIC SELECT</h1><div class="sub">楽曲を選んでください</div></div>
@@ -404,7 +404,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
   </div>
 
   <div id="shopScreen" class="screen hidden">
-    <div class="shop-head"><div class="back-link" id="shopBack" style="position:static">&#8592; もどる</div><div class="shop-coins"><span>&#129689;</span><span id="shopCoinVal">200</span></div></div>
+    <div class="shop-head"><div class="back-link" id="shopBack" style="position:static">&#8592; もどる</div><div class="shop-coins"><img src="assets/coin_sm.webp" style="width:20px;height:20px;vertical-align:middle;"><span id="shopCoinVal">200</span></div></div>
     <div class="shop-title"><span class="crown">&#9819;</span><h1>SHOP</h1><div class="sub">キャラクター ＆ ノーツ</div></div>
     <div class="shop-seg" id="shopSeg"><button class="seg sel" data-cat="char">キャラ</button><button class="seg" data-cat="note">ノーツ</button></div>
     <div class="shop-grid" id="shopGrid"></div>
@@ -447,7 +447,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       <div class="res-top">
         <div class="res-rankcol"><div class="res-rank-glow"></div><img class="res-rank-img" id="rankBadgeImg" src="" alt=""><div class="res-rank" id="resultRank">S</div><div class="res-banner" id="resBanner">CLEARED</div><img class="ri ri-ap hidden" id="allPerfectImg" src="assets/result/badge_ALLPERFECT.webp" alt="ALL PERFECT"></div>
         <div class="res-panel score-panel">
-          <div class="sp-top"><span class="sp-label">SCORE</span><img class="newrec hidden" id="newRec" src="assets/result/badge_NEWRECORD.webp" alt="NEW RECORD!" style="height:22px;vertical-align:middle;max-width:120px;"></div>
+          <div class="sp-top"><span class="sp-label">SCORE</span><span class="newrec hidden" id="newRec">NEW RECORD!</span></div>
           <canvas id="scoreCanvas" style="height:52px;display:block;"></canvas>
           <div class="sp-high"><span>HIGH SCORE</span><b id="resHigh" style="color:#ff9be0;font-size:18px;font-family:'Mochiy Pop One';display:block;margin-top:1px;">0</b></div>
         </div>
@@ -461,7 +461,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
         </div>
         <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><span class="cv" id="rCombo">0</span></div>
       </div>
-      <div style="text-align:center"><div class="res-coin" id="coinReward">&#129689; +0</div><div class="coin-breakdown" id="coinBreakdown"></div></div>
+      <div style="text-align:center"><div class="res-coin"><img src="assets/coin_md.webp" style="width:28px;height:28px;vertical-align:middle;margin-right:4px;"> +<span id="coinReward">0</span></div><div class="coin-breakdown" id="coinBreakdown"></div></div>
       <div class="res-charrow"><div class="res-bubble" id="resBubble">おつかれさま！</div><img class="res-char" id="resChar" alt=""></div>
       <div class="res-panel timing-panel">
         <div class="tp-title">TIMING</div>

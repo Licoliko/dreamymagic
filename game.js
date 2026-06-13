@@ -406,19 +406,30 @@ function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.
 
 // ===== 画像数字スプライト =====
 window.NumSprite = (() => {
-  const sheets = {}, CELL_W=153, CELL_H=170;
-  function load(name){ if(sheets[name]) return sheets[name]; const img=new Image(); img.src='assets/numbers/num_'+name+'.webp'; sheets[name]=img; return img; }
+  const sheets = {}, CELL_H=170;
+  function load(name){
+    if(sheets[name]) return sheets[name];
+    const img=new Image();
+    img.src='assets/numbers/num_'+name+'.webp';
+    sheets[name]=img;
+    return img;
+  }
   ['gold','pink','purple'].forEach(load);
+  function cellW(sheet){ return sheet.naturalWidth ? Math.floor(sheet.naturalWidth/10) : 101; }
   function draw(canvas, numStr, sheetName, maxW, maxH){
     if(!canvas) return;
     try {
       const ctx=canvas.getContext('2d'), sheet=load(sheetName);
       const digits=String(Math.round(numStr)).split('').filter(c=>c>='0'&&c<='9');
       if(!digits.length) return;
-      const n=digits.length, h=maxH||40, scale=h/CELL_H;
-      const dw=Math.floor(CELL_W*scale), dh=Math.floor(CELL_H*scale);
-      canvas.width=dw*n; canvas.height=dh;
-      const drawIt=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); digits.forEach((d,i)=>ctx.drawImage(sheet,parseInt(d)*CELL_W,0,CELL_W,CELL_H,i*dw,0,dw,dh)); };
+      const n=digits.length, h=maxH||40;
+      const drawIt=()=>{
+        const cw=cellW(sheet), scale=h/CELL_H;
+        const dw=Math.floor(cw*scale), dh=Math.floor(CELL_H*scale);
+        canvas.width=dw*n; canvas.height=dh;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        digits.forEach((d,i)=>ctx.drawImage(sheet,parseInt(d)*cw,0,cw,CELL_H,i*dw,0,dw,dh));
+      };
       if(sheet.complete&&sheet.naturalWidth) drawIt(); else sheet.onload=drawIt;
     } catch(e){ console.warn('NumSprite.draw:',e); }
   }
@@ -466,7 +477,7 @@ function endGame(){
     countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
     NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
     countUp($('#resHigh'), newHS, 1100);
-    countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
+    countUp($('#coinReward'),rew.total,900,v=>Math.round(v).toLocaleString());
     countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
     [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
     buildHisto(G.offsets);
