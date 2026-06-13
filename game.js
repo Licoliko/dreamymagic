@@ -433,40 +433,49 @@ function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const B
   const mx=Math.max(1,...bins);
   bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
 function updateScrollHint(){ const b=$('#resultBody'),h=$('#scrollHint'); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
-function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; AudioEngine.stop(); cancelAnimationFrame(_feverDance.phase); endFever(); stage.classList.remove('playing');
+function endGame(){
+  if(!G||G.ended) return;
+  G.ended=true; G.started=false; AudioEngine.stop(); cancelAnimationFrame(_feverDance.phase); endFever(); stage.classList.remove('playing');
   try {
-  const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
-  const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
-  const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
-  if(!G.failed) Stats.addClear(fullCombo);
-  const _resDiff=$('#resDiff'); if(_resDiff) _resDiff.textContent=DIFF_NAMES[diffKey]||diffKey;
-  const _diffImgKey=diffKey==='VERYHARD'?'MASTER':diffKey;
-  const resDiffImg=$('#resDiffImg'); if(resDiffImg) resDiffImg.src=`assets/result/diff_${_diffImgKey}.webp`;
-  const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src=`assets/result/rank_${rank}.webp`;
-  const apImg=$('#allPerfectImg'); if(apImg) apImg.classList.toggle('hidden',!allPerfect);
-  const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
-  $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
-  $('#resultRank').textContent=rank;
-  const banner=$('#resBanner'); banner.classList.toggle('fail',G.failed);
-  banner.textContent=G.failed?'FAILED':allPerfect?'ALL PERFECT':fullCombo?'FULL COMBO':'CLEARED';
-  $('#fcBadge').classList.toggle('hidden', !(fullCombo||allPerfect));
-  $('#resBubble').textContent=G.failed?'うぅ…つぎはきっとできるよ！':allPerfect?'やった〜！完璧だよっ！すごいすごーいっ☆':fullCombo?'ノーミス！その調子だよっ♪':(rank==='S'||rank==='SS')?'すごい！とっても上手っ✨':(rank==='A')?'いい感じ！その調子♪':'クリア！おつかれさまっ☆';
-  const rc=$('#resChar'); rc.src=CUR_CHAR_IMG; rc.style.display=SHOW_CHAR?'':'none';
-  const prevHS=getHS(), isNew=!G.failed&&G.score>prevHS, newHS=Math.max(prevHS,G.score); if(isNew)setHS(G.score);
-  $('#newRec').classList.toggle('hidden',!isNew);
-  const rew=clearReward(); Wallet.add(rew.total);
-  $('#coinBreakdown').textContent=rew.total?rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('\u3000'):(G.failed?'クリアできなかった…コインなし':'');
-  const JW=WIN.PERFECT; let late=0,just=0,early=0; G.offsets.forEach(o=>{ if(o>JW)early++; else if(o<-JW)late++; else just++; });
-  const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
-  } catch(e){ console.error('endGame error:',e.message||e); } finally { $('#resultScreen').classList.remove('hidden'); try{$('#resultBody').scrollTop=0;}catch(e2){} setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450); } /*endgame-end*/
-  countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
-  NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
-  countUp($('#resHigh'), newHS, 1100);
-  countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
-  countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
-  [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
-  buildHisto(G.offsets);
-  setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
+    const acc=G.accCount?G.accWeight/G.accCount:0, rank=rankOf(acc,G.failed);
+    const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
+    const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
+    if(!G.failed) Stats.addClear(fullCombo);
+    const _resDiff=$('#resDiff'); if(_resDiff) _resDiff.textContent=DIFF_NAMES[diffKey]||diffKey;
+    const _diffImgKey=diffKey==='VERYHARD'?'MASTER':diffKey;
+    const resDiffImg=$('#resDiffImg'); if(resDiffImg) resDiffImg.src='assets/result/diff_'+_diffImgKey+'.webp';
+    const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src='assets/result/rank_'+rank+'.webp';
+    const apImg=$('#allPerfectImg'); if(apImg) apImg.classList.toggle('hidden',!allPerfect);
+    const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
+    $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
+    $('#resultRank').textContent=rank;
+    const banner=$('#resBanner'); banner.classList.toggle('fail',G.failed);
+    banner.textContent=G.failed?'FAILED':allPerfect?'ALL PERFECT':fullCombo?'FULL COMBO':'CLEARED';
+    $('#fcBadge').classList.toggle('hidden',!(fullCombo||allPerfect));
+    $('#resBubble').textContent=G.failed?'\u3046\u3045\u2026\u3064\u304e\u306f\u304d\u3063\u3068\u3067\u304d\u308b\u3088\uff01':allPerfect?'\u3084\u3063\u305f\u301c\uff01\u5b8c\u74a7\u3060\u3088\u3063\uff01\u3059\u3054\u3044\u3059\u3054\u30fc\u3044\u3063\u2606':fullCombo?'\u30ce\u30fc\u30df\u30b9\uff01\u305d\u306e\u8abf\u5b50\u3060\u3088\u3063\u266a':(rank==='S'||rank==='SS')?'\u3059\u3054\u3044\uff01\u3068\u3063\u3066\u3082\u4e0a\u624b\u3063\u2728':(rank==='A')?'\u3044\u3044\u611f\u3058\uff01\u305d\u306e\u8abf\u5b50\u266a':'\u30af\u30ea\u30a2\uff01\u304a\u3064\u304b\u308c\u3055\u307e\u3063\u2606';
+    const rc=$('#resChar'); if(rc){ rc.src=CUR_CHAR_IMG; rc.style.display=SHOW_CHAR?'':'none'; }
+    const prevHS=getHS(), isNew=!G.failed&&G.score>prevHS, newHS=Math.max(prevHS,G.score); if(isNew)setHS(G.score);
+    $('#newRec').classList.toggle('hidden',!isNew);
+    const rew=clearReward(); Wallet.add(rew.total);
+    $('#coinBreakdown').textContent=rew.total?rew.parts.filter(p=>p[1]).map(p=>p[0]+' +'+p[1]).join('\u3000'):(G.failed?'\u30af\u30ea\u30a2\u3067\u304d\u306a\u304b\u3063\u305f\u2026\u30b3\u30a4\u30f3\u306a\u3057':'');
+    const JW=WIN.PERFECT; let late=0,just=0,early=0; G.offsets.forEach(o=>{ if(o>JW)early++; else if(o<-JW)late++; else just++; });
+    const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
+    countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
+    NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
+    countUp($('#resHigh'), newHS, 1100);
+    countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
+    countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
+    [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
+    buildHisto(G.offsets);
+    setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220);
+  } catch(e){
+    console.error('endGame error:', e.message||e);
+  } finally {
+    $('#resultScreen').classList.remove('hidden');
+    try{ $('#resultBody').scrollTop=0; }catch(e2){}
+    setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450);
+  }
+}
 function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#9654;'; $('#pauseOverlay').classList.remove('hidden'); }
 function pauseToggle(){ if(!G||!G.started||G.ended)return; if(G.paused)resumeGame(); else pauseGame(); }
 function resumeGame(){ if(!G||!G.paused)return; const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#10074;&#10074;'; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
