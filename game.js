@@ -398,6 +398,8 @@ function hsKey(){ return 'pk_hs_'+selectedSong.id+'_'+diffKey+'_'+lengthKey; }
 function getHS(){ try{ return parseInt(localStorage.getItem(hsKey()),10)||0; }catch(e){ return 0; } }
 function setHS(v){ try{ localStorage.setItem(hsKey(),String(v)); }catch(e){} }
 // VERSION: 2026-06-13-v5
+const APP_VERSION = '2026-06-13-v5';
+document.addEventListener('DOMContentLoaded', () => { const el = document.getElementById('appVersion'); if(el) el.textContent = APP_VERSION; });
 function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.round(v).toLocaleString()); const start=performance.now();
   function step(now){ const p=Math.min(1,(now-start)/dur); const e=1-Math.pow(1-p,3); el.textContent=fmt(to*e); if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to); }
   requestAnimationFrame(step); }

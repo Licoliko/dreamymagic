@@ -4,6 +4,27 @@
   },
   "songs": [
     {
+      "id": "kuronojoou",
+      "title": "黒の女王は海に沈む",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "DARK",
+        "PIANO",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#6a4fa8",
+      "c2": "#0a0820",
+      "bpm": 130.0,
+      "duration": 276.6,
+      "audio": "songs/kuronojoou/audio.mp3",
+      "chart": "songs/kuronojoou/chart.json",
+      "jacket": "songs/kuronojoou/jacket.webp",
+      "preview": 30.0,
+      "desc": "深海の図書館で差し出された黒の王。\n勝敗では測れない選択が始まる。\n誘うのは女王か、記憶か。\n最後の一手を置くのは、あなた。"
+    },
+    {
       "id": "crossing",
       "title": "crossing signal",
       "artist": "kuma to kuma",
