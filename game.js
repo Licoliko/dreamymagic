@@ -415,39 +415,31 @@ window.NumSprite = (() => {
   // preload
   ['gold','pink','purple'].forEach(load);
 
-  // canvasに数字文字列を描画（フル解像度で描いてCSSのheightでリサイズ）
+  // canvasに数字文字列を描画
   function draw(canvas, numStr, sheetName, maxW, maxH) {
-    const ctx = canvas.getContext('2d');
-    const sheet = load(sheetName);
-    const digits = String(Math.round(numStr)).split('').filter(c => c >= '0' && c <= '9');
-    if (!digits.length) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
-    const n = digits.length;
-    // フル解像度で描画（高品質）
-    canvas.width = CELL_W * n;
-    canvas.height = CELL_H;
-    // 親要素の内側幅を取得してcanvasのCSS widthを設定（はみ出し防止）
-    const parent = canvas.parentElement;
-    const parentInner = parent ? parent.clientWidth - parseFloat(getComputedStyle(parent).paddingLeft||0) - parseFloat(getComputedStyle(parent).paddingRight||0) : 9999;
-    const cssH = canvas.offsetHeight || parseFloat(canvas.style.height) || CELL_H;
-    const naturalW = cssH * (CELL_W * n / CELL_H);
-    const finalW = Math.min(naturalW, parentInner);
-    canvas.style.width = finalW + 'px';
-    // 縮小率が大きい場合はcanvasも縮小解像度で描いてドット防止
-    const scale = finalW / naturalW;
-    if (scale < 0.5) {
-      canvas.width = Math.ceil(CELL_W * n * scale * 2);
-      canvas.height = Math.ceil(CELL_H * scale * 2);
-    }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const drawIt = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      digits.forEach((d, i) => {
-        const sx = parseInt(d) * CELL_W;
-        ctx.drawImage(sheet, sx, 0, CELL_W, CELL_H, i * CELL_W, 0, CELL_W, CELL_H);
-      });
-    };
-    if (sheet.complete && sheet.naturalWidth) drawIt();
-    else sheet.onload = drawIt;
+    if (!canvas) return;
+    try {
+      const ctx = canvas.getContext('2d');
+      const sheet = load(sheetName);
+      const digits = String(Math.round(numStr)).split('').filter(c => c >= '0' && c <= '9');
+      if (!digits.length) return;
+      const n = digits.length;
+      // CSSのheightを基準にスケール計算（引数maxH > インラインstyle > computedStyle）
+      const cssH = maxH || parseFloat(canvas.style.height) || parseFloat(getComputedStyle(canvas).height) || 40;
+      const scale = cssH / CELL_H;
+      const dw = Math.floor(CELL_W * scale);
+      const dh = Math.floor(CELL_H * scale);
+      canvas.width = dw * n;
+      canvas.height = dh;
+      const drawIt = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        digits.forEach((d, i) => {
+          ctx.drawImage(sheet, parseInt(d) * CELL_W, 0, CELL_W, CELL_H, i * dw, 0, dw, dh);
+        });
+      };
+      if (sheet.complete && sheet.naturalWidth) drawIt();
+      else sheet.onload = drawIt;
+    } catch(e) { console.warn('NumSprite.draw error:', e); }
   }
 
   // countUpアニメーション付きcanvas描画
@@ -478,7 +470,7 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
   if(!G.failed) Stats.addClear(fullCombo);
-  $('#resDiff').textContent=DIFF_NAMES[diffKey]||diffKey;
+  const _resDiff=$('#resDiff'); if(_resDiff) _resDiff.textContent=DIFF_NAMES[diffKey]||diffKey;
   const _diffImgKey=diffKey==='VERYHARD'?'MASTER':diffKey;
   const resDiffImg=$('#resDiffImg'); if(resDiffImg) resDiffImg.src=`assets/result/diff_${_diffImgKey}.webp`;
   const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src=`assets/result/rank_${rank}.webp`;
@@ -501,10 +493,10 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
   countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
   // 画像数字でスコア描画
-  NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 220, 52);
+  NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
   countUp($('#resHigh'), newHS, 1100);
-  NumSprite.countUpCanvas($('#comboCanvas'), G.maxCombo, 800, 'purple', 130, 44);
-  [['perfect',G.counts.PERFECT,150],['great',G.counts.GREAT,230],['good',G.counts.GOOD,310],['miss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>NumSprite.countUpCanvas($('#jc_'+id),v,500,'gold',80,38),d));
+  NumSprite.countUpCanvas($('#comboCanvas'), G.maxCombo, 800, 'purple', 0, 44);
+  [['perfect',G.counts.PERFECT,150],['great',G.counts.GREAT,230],['good',G.counts.GOOD,310],['miss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>NumSprite.countUpCanvas($('#jc_'+id),v,500,'gold',0,36),d));
   buildHisto(G.offsets);
   setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
 function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#9654;'; $('#pauseOverlay').classList.remove('hidden'); }
