@@ -400,6 +400,74 @@ function setHS(v){ try{ localStorage.setItem(hsKey(),String(v)); }catch(e){} }
 function countUp(el,to,dur,fmt){ if(!el)return; dur=dur||850; fmt=fmt||(v=>Math.round(v).toLocaleString()); const start=performance.now();
   function step(now){ const p=Math.min(1,(now-start)/dur); const e=1-Math.pow(1-p,3); el.textContent=fmt(to*e); if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to); }
   requestAnimationFrame(step); }
+
+// ===== 画像数字描画システム =====
+window.NumSprite = (() => {
+  const sheets = {};
+  const CELL_W = 153, CELL_H = 170;
+  function load(name) {
+    if (sheets[name]) return sheets[name];
+    const img = new Image();
+    img.src = `assets/numbers/num_${name}.webp`;
+    sheets[name] = img;
+    return img;
+  }
+  // preload
+  ['gold','pink','purple'].forEach(load);
+
+  // canvasに数字文字列を描画（フル解像度で描いてCSSのheightでリサイズ）
+  function draw(canvas, numStr, sheetName, maxW, maxH) {
+    const ctx = canvas.getContext('2d');
+    const sheet = load(sheetName);
+    const digits = String(Math.round(numStr)).split('').filter(c => c >= '0' && c <= '9');
+    if (!digits.length) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+    const n = digits.length;
+    // フル解像度で描画（高品質）
+    canvas.width = CELL_W * n;
+    canvas.height = CELL_H;
+    // 親要素の内側幅を取得してcanvasのCSS widthを設定（はみ出し防止）
+    const parent = canvas.parentElement;
+    const parentInner = parent ? parent.clientWidth - parseFloat(getComputedStyle(parent).paddingLeft||0) - parseFloat(getComputedStyle(parent).paddingRight||0) : 9999;
+    const cssH = canvas.offsetHeight || parseFloat(canvas.style.height) || CELL_H;
+    const naturalW = cssH * (CELL_W * n / CELL_H);
+    const finalW = Math.min(naturalW, parentInner);
+    canvas.style.width = finalW + 'px';
+    // 縮小率が大きい場合はcanvasも縮小解像度で描いてドット防止
+    const scale = finalW / naturalW;
+    if (scale < 0.5) {
+      canvas.width = Math.ceil(CELL_W * n * scale * 2);
+      canvas.height = Math.ceil(CELL_H * scale * 2);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const drawIt = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      digits.forEach((d, i) => {
+        const sx = parseInt(d) * CELL_W;
+        ctx.drawImage(sheet, sx, 0, CELL_W, CELL_H, i * CELL_W, 0, CELL_W, CELL_H);
+      });
+    };
+    if (sheet.complete && sheet.naturalWidth) drawIt();
+    else sheet.onload = drawIt;
+  }
+
+  // countUpアニメーション付きcanvas描画
+  function countUpCanvas(canvas, to, dur, sheetName, maxW, maxH, fmt) {
+    if (!canvas) return;
+    fmt = fmt || (v => String(Math.round(v)));
+    dur = dur || 850;
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      draw(canvas, fmt(to * e), sheetName, maxW, maxH);
+      if (p < 1) requestAnimationFrame(step);
+      else draw(canvas, fmt(to), sheetName, maxW, maxH);
+    }
+    requestAnimationFrame(step);
+  }
+
+  return { draw, countUpCanvas, load };
+})();
 function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const BINS=13,RANGE=0.16,mid=(BINS-1)/2; const bins=new Array(BINS).fill(0);
   offsets.forEach(o=>{ let idx=Math.round((o/RANGE)*mid+mid); idx=Math.max(0,Math.min(BINS-1,idx)); bins[idx]++; });
   const mx=Math.max(1,...bins);
@@ -410,7 +478,11 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   const allPerfect=!G.failed&&G.counts.GREAT===0&&G.counts.GOOD===0&&G.counts.MISS===0&&G.counts.PERFECT>0;
   const fullCombo=!G.failed&&G.counts.MISS===0&&G.totalNotes>0;
   if(!G.failed) Stats.addClear(fullCombo);
-  $('#resDiff').textContent=diffKey;
+  $('#resDiff').textContent=DIFF_NAMES[diffKey]||diffKey;
+  const _diffImgKey=diffKey==='VERYHARD'?'MASTER':diffKey;
+  const resDiffImg=$('#resDiffImg'); if(resDiffImg) resDiffImg.src=`assets/result/diff_${_diffImgKey}.webp`;
+  const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src=`assets/result/rank_${rank}.webp`;
+  const apImg=$('#allPerfectImg'); if(apImg) apImg.classList.toggle('hidden',!allPerfect);
   const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
   $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
   $('#resultRank').textContent=rank;
@@ -427,10 +499,12 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   const rankEl=$('#resultRank'); rankEl.classList.remove('in'); void rankEl.offsetWidth; rankEl.classList.add('in');
   $('#resultScreen').classList.remove('hidden'); $('#resultBody').scrollTop=0; setTimeout(updateScrollHint,60); setTimeout(updateScrollHint,450);
   countUp($('#resNotes'),G.totalNotes,600,v=>Math.round(v));
-  countUp($('#resultScore'),G.score,1100); countUp($('#resHigh'),newHS,1100);
   countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
-  countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
-  [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
+  // 画像数字でスコア描画
+  NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 220, 52);
+  countUp($('#resHigh'), newHS, 1100);
+  NumSprite.countUpCanvas($('#comboCanvas'), G.maxCombo, 800, 'purple', 130, 44);
+  [['perfect',G.counts.PERFECT,150],['great',G.counts.GREAT,230],['good',G.counts.GOOD,310],['miss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>NumSprite.countUpCanvas($('#jc_'+id),v,500,'gold',80,38),d));
   buildHisto(G.offsets);
   setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
 function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#9654;'; $('#pauseOverlay').classList.remove('hidden'); }

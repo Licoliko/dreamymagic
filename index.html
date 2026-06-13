@@ -215,7 +215,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #resultScreen::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 72% 22%,rgba(255,210,255,.12),transparent 70%);pointer-events:none;}
 .result-body{position:relative;z-index:1;width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:max(env(safe-area-inset-top,0),14px) 16px 18px;}
 .res-head{display:flex;align-items:center;justify-content:space-between;}
-.res-title{font-family:'Cinzel',serif;font-weight:700;font-size:42px;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffd8f0 50%,#ffb0e6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(255,150,230,.6));animation:resFade .5s ease both;}
+.res-title{font-family:'Cinzel',serif;font-weight:700;font-size:46px;letter-spacing:.06em;line-height:1;background:linear-gradient(180deg,#fffbe0 0%,#ffd700 40%,#c9870a 70%,#ffd700 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(255,200,80,.8)) drop-shadow(0 2px 4px rgba(0,0,0,.9));animation:resFade .5s ease both;}
 .share-btn{pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;font-weight:700;color:#ffe7a8;background:rgba(60,32,110,.6);border:1.5px solid rgba(255,210,150,.5);border-radius:14px;padding:7px 12px;}
 .share-btn .si{font-size:15px;}
 .res-diffrow{display:flex;align-items:center;gap:12px;margin-top:8px;animation:resFade .5s .05s ease both;}
@@ -223,27 +223,28 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .res-stars{font-size:19px;letter-spacing:2px;color:#3a2060;}
 .res-stars b{color:#ffcf5c;text-shadow:0 0 10px rgba(255,200,90,.9);}
 .res-songrow{display:flex;gap:13px;align-items:center;margin-top:13px;animation:resFade .5s .1s ease both;}
-.res-jacket{width:74px;height:74px;border-radius:13px;overflow:hidden;flex:none;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.2);}
+.res-jacket{width:74px;height:74px;border-radius:13px;overflow:hidden;flex:none;box-shadow:0 0 0 2px #8b6020,0 0 0 3.5px rgba(255,200,80,.3),0 6px 18px rgba(0,0,0,.6);}
 .res-jacket svg{width:100%;height:100%;}
 .res-songtitle{font-family:'Mochiy Pop One';font-size:20px;line-height:1.15;}
 .res-songartist{font-size:12px;color:#d6bdf6;margin:2px 0 5px;}
 .res-notes{font-size:12px;color:#c9b6ec;} .res-notes b{color:#fff;font-size:14px;margin-left:4px;}
 .res-rankwrap{position:relative;display:flex;flex-direction:column;align-items:center;margin:14px 0 4px;animation:resFade .5s .15s ease both;}
 .res-rank-glow{position:absolute;top:50%;left:50%;width:230px;height:230px;transform:translate(-50%,-58%);background:radial-gradient(circle,rgba(255,210,120,.35),transparent 62%);pointer-events:none;}
-.res-rank{position:relative;font-family:'Cinzel',serif;font-weight:700;font-size:120px;line-height:1;background:linear-gradient(180deg,#fff7d0,#ffd24a 45%,#f0a020);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px rgba(255,200,90,.9));}
+.res-rank{display:none;}
+.res-rank-img{width:90%;max-width:160px;object-fit:contain;animation:rankin .7s cubic-bezier(.2,1.5,.4,1);filter:drop-shadow(0 0 14px rgba(255,180,0,.5));}
 .res-rank.in{animation:rankin .7s cubic-bezier(.2,1.5,.4,1);}
 @keyframes rankin{0%{opacity:0;transform:scale(.3) rotate(-14deg)}60%{opacity:1}100%{opacity:1;transform:scale(1) rotate(0)}}
 .res-rank-spark{position:absolute;inset:0;pointer-events:none;}
-.res-banner{position:relative;margin-top:6px;font-family:'Mochiy Pop One';font-size:18px;letter-spacing:.06em;color:#fff;background:linear-gradient(90deg,#8b3bd6,#c14fc1);padding:7px 30px;border-radius:8px;box-shadow:0 5px 16px rgba(120,40,170,.5),inset 0 0 14px rgba(255,200,255,.25);border:1.5px solid rgba(255,210,150,.5);animation:bannerIn .5s .4s ease both;}
+.res-banner{position:relative;margin-top:5px;font-family:'Mochiy Pop One';font-size:14px;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#5a1d9a,#9b35c8,#5a1d9a);padding:5px 22px;border-radius:6px;box-shadow:0 4px 14px rgba(100,30,180,.6),inset 0 1px 0 rgba(255,255,255,.2);border:1.5px solid rgba(200,150,255,.6);animation:bannerIn .5s .4s ease both;}
 .res-banner.fail{background:linear-gradient(90deg,#8a3a55,#b85a6a);}
 @keyframes bannerIn{0%{opacity:0;transform:scale(.7)}100%{opacity:1;transform:scale(1)}}
 .res-top{display:flex;gap:11px;align-items:stretch;margin-top:12px;}
-.res-rankcol{flex:0 0 43%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:linear-gradient(160deg,rgba(70,40,120,.45),rgba(40,22,82,.6));border:1.5px solid rgba(255,210,150,.3);border-radius:18px;padding:12px 6px;box-shadow:0 5px 16px rgba(0,0,0,.3);overflow:hidden;}
+.res-rankcol{flex:0 0 43%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:linear-gradient(160deg,rgba(30,15,65,.9),rgba(15,8,40,.95));border:2px solid;border-color:#8b6020;border-radius:18px;padding:8px 6px;box-shadow:0 0 0 1px rgba(255,200,100,.25),0 8px 24px rgba(0,0,0,.6),inset 0 0 20px rgba(180,120,255,.08);overflow:hidden;}
 .res-top .res-rank{font-size:80px;}
 .res-top .res-rank-glow{width:150px;height:150px;transform:translate(-50%,-52%);}
 .res-top .res-banner{font-size:13px;padding:5px 12px;margin-top:2px;}
-.res-top .score-panel{flex:1;margin-top:0;display:flex;flex-direction:column;justify-content:center;}
-.res-top .sp-score{font-size:34px;}
+.res-top .score-panel{flex:1;margin-top:0;display:flex;flex-direction:column;justify-content:center;padding:10px 10px;overflow:hidden;}
+.res-top .score-canvas{height:50px;}
 .result-body::-webkit-scrollbar{width:8px;}
 .result-body::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:4px;margin:4px;}
 .result-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ffd24a,#ff79c6);border-radius:4px;border:1px solid rgba(255,255,255,.2);}
@@ -251,14 +252,19 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .scroll-hint{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:5;width:42px;height:42px;border-radius:50%;background:rgba(40,22,80,.9);border:1.5px solid rgba(255,210,150,.6);color:#ffe7a8;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 14px rgba(255,200,120,.4);animation:hintBounce 1.1s ease-in-out infinite;pointer-events:none;transition:opacity .3s;}
 .scroll-hint.hide{opacity:0;}
 @keyframes hintBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
-.res-panel{background:linear-gradient(160deg,rgba(70,40,120,.5),rgba(40,22,82,.62));border:1.5px solid rgba(255,210,150,.32);border-radius:18px;padding:15px 18px;margin-top:14px;text-align:left;box-shadow:0 5px 16px rgba(0,0,0,.3),inset 0 0 20px rgba(255,200,255,.05);animation:resFade .5s .2s ease both;}
+.res-panel{background:linear-gradient(160deg,rgba(20,10,50,.92),rgba(12,6,30,.95));border:2px solid;border-color:#7a5018;border-radius:18px;padding:15px 18px;margin-top:12px;text-align:left;box-shadow:0 0 0 1px rgba(255,190,80,.18),0 6px 20px rgba(0,0,0,.5),inset 0 0 16px rgba(150,80,255,.06);animation:resFade .5s .2s ease both;}
 .res-songinfo{text-align:left;flex:1;min-width:0;}
 .sp-top{display:flex;align-items:center;gap:10px;}
 .sp-label{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;}
-.newrec{font-family:'Mochiy Pop One';font-size:11px;color:#3a1d00;background:linear-gradient(90deg,#ffe27a,#ffb347);padding:3px 10px;border-radius:7px;box-shadow:0 0 12px rgba(255,200,90,.7);animation:recPulse 1s infinite;}
+.newrec{font-family:'Mochiy Pop One';font-size:11px;color:#fff;background:linear-gradient(90deg,#b060ff,#ff60c0,#b060ff);padding:3px 12px;border-radius:7px;box-shadow:0 0 14px rgba(180,80,255,.7);animation:recPulse 1s infinite;}
 @keyframes recPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.sp-score{font-family:'Mochiy Pop One';font-size:46px;line-height:1;background:linear-gradient(180deg,#fff,#ffd8f0);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,160,230,.5));margin:4px 0;}
-.sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';margin-left:8px;}
+.sp-score{font-family:'Mochiy Pop One';font-size:48px;line-height:1;background:linear-gradient(180deg,#ffffff,#ffd700 50%,#ff9920);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,200,0,.6));margin:6px 0;}
+.sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;display:flex;flex-direction:column;gap:0;overflow:visible;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';margin-left:8px;}
+.num-canvas{display:block;image-rendering:auto;max-width:100%;}
+.score-canvas{height:52px;width:auto;max-width:100%;margin:4px 0;display:block;}
+.high-canvas{height:30px;width:auto;max-width:160px;display:inline-block;vertical-align:middle;}
+.jv-canvas{height:34px;width:auto;max-width:88px;display:block;margin-left:auto;}
+.combo-canvas{height:42px;width:auto;max-width:140px;display:block;margin-left:auto;}
 .res-coin{display:inline-flex;align-items:center;gap:8px;font-family:'Mochiy Pop One';font-size:24px;color:#ffd96e;margin:14px auto 2px;padding:8px 22px;border-radius:24px;background:rgba(60,40,20,.4);border:1.5px solid rgba(255,200,90,.5);filter:drop-shadow(0 0 12px rgba(255,200,90,.5));animation:resFade .5s .25s ease both;}
 .coin-breakdown{font-size:11px;color:#cdb6f0;text-align:center;}
 .res-charrow{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-top:10px;min-height:40px;animation:resFade .5s .3s ease both;}
@@ -270,11 +276,13 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .jrow:last-child{border-bottom:none;}
 .jrow .jk{font-family:'Mochiy Pop One';font-size:17px;}
 .jrow .jv{font-family:'Mochiy Pop One';font-size:22px;font-weight:800;}
-.jk.p{color:#ff9be0}.jk.gr{color:#c9a0ff}.jk.gd{color:#9fe88a}.jk.ms{color:#9aa0b5}
+.jrow .jv-canvas{height:38px;width:auto;max-width:90px;display:block;}
+.jk.p{color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.5)}.jk.gr{color:#c060ff;text-shadow:0 0 10px rgba(190,80,255,.4)}.jk.gd{color:#50e080;text-shadow:0 0 10px rgba(60,220,100,.4)}.jk.ms{color:#808090}
 .combo-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1.5px solid rgba(255,255,255,.14);}
 .combo-row .ck{display:flex;align-items:center;gap:10px;font-size:13px;color:#d9c4ff;}
-.fc-badge{font-family:'Mochiy Pop One';font-size:11px;color:#fff;background:linear-gradient(90deg,#b06bff,#ff79c6);padding:3px 10px;border-radius:7px;}
+.fc-badge{font-family:'Mochiy Pop One';font-size:11px;color:#2a1000;background:linear-gradient(90deg,#ffd700,#ff9920,#ffd700);padding:3px 12px;border-radius:7px;box-shadow:0 0 10px rgba(255,200,0,.5);}
 .combo-row .cv{font-family:'Mochiy Pop One';font-size:26px;color:#fff;}
+.combo-row .combo-canvas{height:46px;width:auto;max-width:150px;display:block;}
 .tp-title{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;margin-bottom:10px;}
 .histo{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:74px;padding:0 4px;}
 .histo .bar{flex:1;max-width:18px;border-radius:4px 4px 0 0;height:2px;background:linear-gradient(180deg,#ffd24a,#7fd0ff);transition:height .6s cubic-bezier(.2,1,.4,1);}
@@ -330,6 +338,16 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 @keyframes feverbanner{0%{opacity:0;transform:translateX(-50%) scale(.4)}25%{opacity:1;transform:translateX(-50%) scale(1.1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1.3)}}
 #stage.fever{animation:feverbg .4s infinite;}
 @keyframes feverbg{0%,100%{filter:none}50%{filter:hue-rotate(18deg) brightness(1.08)}}
+
+/* リザルト画像素材 (mix-blend-mode:screen で黒背景透過) */
+.ri{display:block;mix-blend-mode:screen;image-rendering:auto;}
+.ri-title{width:min(260px,68vw);height:auto;margin-bottom:2px;}
+.ri-diff{height:52px;width:auto;mix-blend-mode:screen;}
+.ri-rank{width:100%;max-width:200px;height:auto;mix-blend-mode:screen;animation:rankin .7s cubic-bezier(.2,1.5,.4,1);}
+.ri-jlabel{height:28px;width:auto;mix-blend-mode:screen;vertical-align:middle;}
+.ri-fc{height:28px;width:auto;mix-blend-mode:screen;}
+.ri-ap{height:60px;width:auto;mix-blend-mode:screen;}
+.ri-newrec{height:20px;width:auto;mix-blend-mode:screen;}
 </style>
 </head>
 <body>
@@ -427,28 +445,28 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 
   <div id="resultScreen" class="screen hidden">
     <div class="result-body" id="resultBody">
-      <div class="res-head"><div class="res-title">RESULT</div><button class="share-btn" id="shareBtn"><span class="si">&#10138;</span>シェア</button></div>
-      <div class="res-diffrow"><span class="diff-chip" id="resDiff">NORMAL</span><span class="res-stars" id="resStars"></span></div>
+      <div class="res-head"><img class="ri ri-title" src="assets/result/result_title.webp" alt="RESULT"><button class="share-btn" id="shareBtn"><span class="si">&#10138;</span>シェア</button></div>
+      <div class="res-diffrow"><img class="ri ri-diff" id="resDiffImg" src="assets/result/diff_NORMAL.webp" alt="NORMAL"><span class="res-stars" id="resStars"></span></div>
       <div class="res-songrow">
         <div class="res-jacket" id="resJacket"></div>
         <div class="res-songinfo"><div class="res-songtitle" id="resTitle">-</div><div class="res-songartist" id="resArtist">-</div><div class="res-notes">ノーツ数 <b id="resNotes">0</b></div></div>
       </div>
       <div class="res-top">
-        <div class="res-rankcol"><div class="res-rank-glow"></div><div class="res-rank" id="resultRank">S</div><div class="res-banner" id="resBanner">CLEARED</div></div>
+        <div class="res-rankcol"><div class="res-rank-glow"></div><img class="res-rank-img" id="rankBadgeImg" src="" alt=""><div class="res-rank" id="resultRank">S</div><div class="res-banner" id="resBanner">CLEARED</div><img class="ri ri-ap hidden" id="allPerfectImg" src="assets/result/badge_ALLPERFECT.webp" alt="ALL PERFECT"></div>
         <div class="res-panel score-panel">
-          <div class="sp-top"><span class="sp-label">SCORE</span><span class="newrec hidden" id="newRec">NEW RECORD!</span></div>
-          <div class="sp-score" id="resultScore">0</div>
-          <div class="sp-high">HIGH SCORE <b id="resHigh">0</b></div>
+          <div class="sp-top"><span class="sp-label">SCORE</span><img class="newrec hidden" id="newRec" src="assets/result/badge_NEWRECORD.webp" alt="NEW RECORD!" style="height:22px;vertical-align:middle;max-width:120px;"></div>
+          <canvas id="scoreCanvas" style="height:52px;display:block;"></canvas>
+          <div class="sp-high"><span>HIGH SCORE</span><b id="resHigh" style="color:#ff9be0;font-size:18px;font-family:'Mochiy Pop One';display:block;margin-top:1px;">0</b></div>
         </div>
       </div>
       <div class="res-panel">
         <div class="judge-grid">
-          <div class="jrow"><span class="jk p">PERFECT</span><span class="jv" id="rPerfect">0</span></div>
-          <div class="jrow"><span class="jk gr">GREAT</span><span class="jv" id="rGreat">0</span></div>
-          <div class="jrow"><span class="jk gd">GOOD</span><span class="jv" id="rGood">0</span></div>
-          <div class="jrow"><span class="jk ms">MISS</span><span class="jv" id="rMiss">0</span></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_PERFECT.webp" alt="PERFECT"><canvas id="jc_perfect" class="num-canvas jv-canvas"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GREAT.webp" alt="GREAT"><canvas id="jc_great" class="num-canvas jv-canvas"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GOOD.webp" alt="GOOD"><canvas id="jc_good" class="num-canvas jv-canvas"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_MISS.webp" alt="MISS"><canvas id="jc_miss" class="num-canvas jv-canvas"></canvas></div>
         </div>
-        <div class="combo-row"><span class="ck">MAX COMBO <span class="fc-badge hidden" id="fcBadge">FULL COMBO!</span></span><span class="cv" id="rCombo">0</span></div>
+        <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><canvas id="comboCanvas" class="num-canvas combo-canvas"></canvas></div>
       </div>
       <div style="text-align:center"><div class="res-coin" id="coinReward">&#129689; +0</div><div class="coin-breakdown" id="coinBreakdown"></div></div>
       <div class="res-charrow"><div class="res-bubble" id="resBubble">おつかれさま！</div><img class="res-char" id="resChar" alt=""></div>
