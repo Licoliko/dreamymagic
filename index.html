@@ -454,12 +454,12 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
       </div>
       <div class="res-panel">
         <div class="judge-grid">
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_PERFECT.webp" alt="PERFECT"><canvas id="jc_perfect" style="height:36px;display:block;margin-left:auto;"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GREAT.webp" alt="GREAT"><canvas id="jc_great" style="height:36px;display:block;margin-left:auto;"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GOOD.webp" alt="GOOD"><canvas id="jc_good" style="height:36px;display:block;margin-left:auto;"></canvas></div>
-          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_MISS.webp" alt="MISS"><canvas id="jc_miss" style="height:36px;display:block;margin-left:auto;"></canvas></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_PERFECT.webp" alt="PERFECT"><span class="jv" id="rPerfect">0</span></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GREAT.webp" alt="GREAT"><span class="jv" id="rGreat">0</span></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_GOOD.webp" alt="GOOD"><span class="jv" id="rGood">0</span></div>
+          <div class="jrow"><img class="ri ri-jlabel" src="assets/result/judge_MISS.webp" alt="MISS"><span class="jv" id="rMiss">0</span></div>
         </div>
-        <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><canvas id="comboCanvas" style="height:44px;display:block;"></canvas></div>
+        <div class="combo-row"><span class="ck"><img class="ri ri-jlabel" src="assets/result/judge_MAXCOMBO.webp" alt="MAX COMBO" style="height:22px"><img class="ri ri-fc hidden" id="fcBadge" src="assets/result/badge_FULLCOMBO.webp" alt="FULL COMBO" style="height:28px;margin-left:6px;vertical-align:middle;"></span><span class="cv" id="rCombo">0</span></div>
       </div>
       <div style="text-align:center"><div class="res-coin" id="coinReward">&#129689; +0</div><div class="coin-breakdown" id="coinBreakdown"></div></div>
       <div class="res-charrow"><div class="res-bubble" id="resBubble">おつかれさま！</div><img class="res-char" id="resChar" alt=""></div>

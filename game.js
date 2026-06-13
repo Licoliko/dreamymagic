@@ -463,8 +463,8 @@ function endGame(){ if(!G||G.ended) return; G.ended=true; G.started=false; Audio
   NumSprite.countUpCanvas($('#scoreCanvas'), G.score, 1100, 'gold', 0, 52);
   countUp($('#resHigh'), newHS, 1100);
   countUp($('#coinReward'),rew.total,900,v=>'\uD83E\uDE99 +'+Math.round(v).toLocaleString());
-  NumSprite.countUpCanvas($('#comboCanvas'), G.maxCombo, 800, 'purple', 0, 44);
-  [['perfect',G.counts.PERFECT,150],['great',G.counts.GREAT,230],['good',G.counts.GOOD,310],['miss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>NumSprite.countUpCanvas($('#jc_'+id),v,500,'gold',0,36),d));
+  countUp($('#rCombo'),G.maxCombo,800,v=>Math.round(v));
+  [['#rPerfect',G.counts.PERFECT,150],['#rGreat',G.counts.GREAT,230],['#rGood',G.counts.GOOD,310],['#rMiss',G.counts.MISS,390]].forEach(([id,v,d])=>setTimeout(()=>countUp($(id),v,500,x=>Math.round(x)),d));
   buildHisto(G.offsets);
   setTimeout(()=>{ countUp($('#tLate'),late,500,v=>Math.round(v)); countUp($('#tJust'),just,500,v=>Math.round(v)); countUp($('#tEarly'),early,500,v=>Math.round(v)); },220); }
 function pauseGame(){ if(!G||!G.started||G.paused||G.ended)return; G.paused=true; AudioEngine.pause(); $('#pauseVol').value=Math.round(volume*100); const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#9654;'; $('#pauseOverlay').classList.remove('hidden'); }
