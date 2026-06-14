@@ -59,7 +59,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 #comboNum{font-family:'Mochiy Pop One';font-size:54px;line-height:.9;color:#fff;text-shadow:0 3px 0 #b34fa0,0 0 22px rgba(255,170,240,.9);}
 .combo-pop{animation:combopop .18s ease;}
 @keyframes combopop{0%{transform:scale(1.35)}100%{transform:scale(1)}}
-.char{position:absolute;left:-12px;bottom:0;width:30%;max-width:150px;z-index:6;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:bob 2.2s ease-in-out infinite;transition:left .25s,bottom .25s;}
+.char{position:absolute;left:-12px;bottom:0;width:30%;max-width:150px;z-index:6;pointer-events:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:bob 2.2s ease-in-out infinite;transition:left .25s,bottom .25s,transform .35s ease-in-out;transform-origin:center;}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 #stage.fever .char{animation:none;}
 .song-card{position:absolute;right:12px;bottom:14px;width:50%;max-width:240px;z-index:6;pointer-events:none;background:linear-gradient(160deg,rgba(70,40,120,.85),rgba(45,25,80,.9));border:1.5px solid rgba(255,210,150,.6);border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 0 20px rgba(255,200,255,.1);}
@@ -260,7 +260,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .res-songinfo{text-align:left;flex:1;min-width:0;}
 .sp-top{display:flex;align-items:center;gap:10px;}
 .sp-label{font-size:12px;letter-spacing:.2em;color:#e9d4ff;font-weight:700;}
-.newrec{font-family:'Mochiy Pop One';font-size:11px;color:#fff;background:linear-gradient(90deg,#b060ff,#ff60c0,#b060ff);padding:3px 12px;border-radius:7px;box-shadow:0 0 14px rgba(180,80,255,.7);animation:recPulse 1s infinite;}
+.newrec{font-family:'Mochiy Pop One';font-size:10px;color:#fff;background:linear-gradient(90deg,#b060ff,#ff60c0,#b060ff);padding:3px 9px;border-radius:7px;box-shadow:0 0 14px rgba(180,80,255,.7);animation:recPulse 1s infinite;white-space:nowrap;flex-shrink:0;}
 @keyframes recPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .sp-score{font-family:'Mochiy Pop One';font-size:48px;line-height:1;background:linear-gradient(180deg,#ffffff,#ffd700 50%,#ff9920);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,200,0,.6));margin:6px 0;}
 .sp-high{font-size:12px;letter-spacing:.12em;color:#c9b6ec;display:flex;flex-direction:column;} .sp-high b{color:#ff9be0;font-size:16px;font-family:'Mochiy Pop One';}
