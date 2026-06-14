@@ -411,7 +411,8 @@ function clearReward(){ if(G.failed) return {total:0,parts:[]};
   const scoreB=Math.floor(G.score/20000)*10; const fc=(G.counts.MISS===0&&G.totalNotes>0)?50:0;
   const parts=[['クリア',base],['ランク',rankB],['スコア',scoreB]]; if(fc)parts.push(['フルコンボ',fc]);
   return {total:base+rankB+scoreB+fc, parts}; }
-function rankOf(acc,failed){ return failed?'F':acc>=0.95?'SS':acc>=0.90?'S':acc>=0.80?'A':acc>=0.68?'B':acc>=0.5?'C':'D'; }
+function rankOf(acc,failed){ return failed?'F':acc>=0.95?'SS':acc>=0.90?'S':acc>=0.80?'A':acc>=0.68?'B':'C'; }
+const RANK_IMG_FALLBACK={F:'C'};
 function starsForRank(r){ return ({SS:5,S:5,A:4,B:3,C:2,D:1,F:0})[r]||0; }
 function hsKey(){ return 'pk_hs_'+selectedSong.id+'_'+diffKey+'_'+lengthKey; }
 function getHS(){ try{ return parseInt(localStorage.getItem(hsKey()),10)||0; }catch(e){ return 0; } }
@@ -446,10 +447,12 @@ window.NumSprite = (() => {
         const cw=cellW(sheet), scale=h/CELL_H;
         const dw=Math.floor(cw*scale), dh=Math.floor(CELL_H*scale);
         canvas.width=dw*n; canvas.height=dh;
+        canvas.style.width=(dw*n)+'px'; canvas.style.height=dh+'px';
         ctx.clearRect(0,0,canvas.width,canvas.height);
         digits.forEach((d,i)=>ctx.drawImage(sheet,parseInt(d)*cw,0,cw,CELL_H,i*dw,0,dw,dh));
       };
-      if(sheet.complete&&sheet.naturalWidth) drawIt(); else sheet.onload=drawIt;
+      if(sheet.complete && sheet.naturalWidth>0){ drawIt(); }
+      else { sheet.addEventListener('load', drawIt, {once:true}); }
     } catch(e){ console.warn('NumSprite.draw:',e); }
   }
   function countUpCanvas(canvas, to, dur, sheetName, maxW, maxH, fmt){
@@ -477,7 +480,7 @@ function endGame(){
     const _resDiff=$('#resDiff'); if(_resDiff) _resDiff.textContent=DIFF_NAMES[diffKey]||diffKey;
     const _diffImgKey=diffKey==='VERYHARD'?'MASTER':diffKey;
     const resDiffImg=$('#resDiffImg'); if(resDiffImg) resDiffImg.src='assets/result/diff_'+_diffImgKey+'.webp';
-    const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src='assets/result/rank_'+rank+'.webp';
+    const rankBadgeImg=$('#rankBadgeImg'); if(rankBadgeImg) rankBadgeImg.src='assets/result/rank_'+(RANK_IMG_FALLBACK[rank]||rank)+'.webp';
     const apImg=$('#allPerfectImg'); if(apImg) apImg.classList.toggle('hidden',!allPerfect);
     const st=starsForRank(rank); $('#resStars').innerHTML='<b>'+'\u2605'.repeat(st)+'</b>'+'\u2606'.repeat(5-st);
     $('#resJacket').innerHTML=jacketHTML(selectedSong); $('#resTitle').textContent=selectedSong.title; $('#resArtist').textContent=selectedSong.artist||'';
