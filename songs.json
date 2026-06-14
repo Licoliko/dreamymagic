@@ -4,6 +4,27 @@
   },
   "songs": [
     {
+      "id": "bluestep",
+      "title": "ブルーステップ",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#7ec8ff",
+      "c2": "#2a4a8a",
+      "bpm": 128.0,
+      "duration": 149.9,
+      "audio": "songs/bluestep/audio.mp3",
+      "chart": "songs/bluestep/chart.json",
+      "jacket": "songs/bluestep/jacket.webp",
+      "preview": 20.0,
+      "desc": "お気に入りを全部まとって、今日は最高の日にしよう。\n靴ひもを結ぶその瞬間から冒険は始まるね。\n軽やかでキラキラ、でもちゃんと自分らしく。\n「よーし出かけるぞ！」"
+    },
+    {
       "id": "morningtoast",
       "title": "ブルーモーニング、トースト",
       "artist": "Pastel Kingdom",
