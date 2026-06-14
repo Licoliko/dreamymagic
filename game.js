@@ -75,7 +75,7 @@ function updateCoinUI(){ $('#coinVal').textContent=Wallet.coins.toLocaleString()
 /* ============ audio engine (fetch/decode + preview) ============ */
 const AudioEngine={
   ctx:null,gain:null,buffers:{},buffer:null,src:null,startCtxTime:0,pausedAt:0,playing:false,offset:0,vol:0.85,
-  previewSrc:null,previewing:false,sfxType:'shan',sfxOffset:0,_noise:null,_buffers:{},
+  previewSrc:null,previewing:false,sfxType:'none',sfxOffset:0,_noise:null,_buffers:{},
   init(){ if(!this.ctx){ this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); this.gain=this.ctx.createGain(); this.gain.gain.value=this.vol; this.gain.connect(this.ctx.destination);} },
   unlock(){ try{ this.init(); if(this.ctx.state==='suspended') this.ctx.resume(); this.bake(this.sfxType); }catch(e){} },
   setVolume(v){ this.vol=v; if(this.gain) this.gain.gain.value=v; },
@@ -173,11 +173,19 @@ const AutoChart={
 };
 
 /* ============ game state ============ */
-let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', latencyMs=0, volume=0.85, sfxOffsetMs=0, _gameBuf=null;
+let G=null, selectedSong=null, diffKey='NORMAL', lengthKey='FULL', modeKey='RHYTHM', latencyMs=0, volume=0.85, sfxOffsetMs=0, _gameBuf=null;
 const DIFF_NAMES={EASY:'EASY',NORMAL:'NORMAL',HARD:'HARD',VERYHARD:'MASTER'};
 const LENGTHS={'30':{sec:30,label:'30秒'}, '60':{sec:60,label:'1分'}, 'FULL':{sec:Infinity,label:'フル'}};
+const PLAY_MODES={
+  RHYTHM:  {label:'リズム', icon:'\u266A', chartKey:'charts',
+    desc:'拍にぴたっと合わせる、定番のリズムゲーム譜面。正確なタイミングで高スコアを目指そう！'},
+  STORY:   {label:'ストーリー', icon:'\uD83D\uDCD6', chartKey:'charts_story',
+    desc:'曲の構成（イントロ→Aメロ→盛り上がり→サビ）に合わせてレーンや展開が変化。曲の物語を体で感じる譜面。'},
+  EMOTION: {label:'エモーション', icon:'\uD83C\uDF0A', chartKey:'charts_emotion',
+    desc:'曲の感情の起伏をそのまま体験。盛り上がる瞬間は連打ラッシュ、落ち着く瞬間はロングホールドでじっくり。'},
+};
 function curLimit(){ return Math.min(LENGTHS[lengthKey].sec, selectedSong.duration); }
-function chartOf(song){ return song._chart.charts[diffKey]; }
+function chartOf(song){ const key=PLAY_MODES[modeKey].chartKey; const cset=song._chart[key]; const c=(cset&&cset[diffKey])?cset[diffKey]:song._chart.charts[diffKey]; return c; }
 
 function newGame(){ const limit=curLimit(), src=chartOf(selectedSong).notes;
   const notes=src.filter(n=>n.t<=limit-0.3).map((n,i)=>({id:i,t:n.t,lane:n.lane,hold:(n.hold&&n.t+n.hold<=limit-0.1)?n.hold:0,flick:n.flick||0,state:'idle',headJudged:false}));
@@ -357,13 +365,24 @@ async function openOptions(song){
   selectedSong=song;
   $('#optBpm').textContent='BPM '+Math.round(song.bpm)+' ・ '+fmt(song.duration);
   if(song.bpm) renderSongs();
-  buildDiffSelect(); buildLengthSelect();
+  buildModeSelect(); buildDiffSelect(); buildLengthSelect();
 }
 async function loadSongData(song){ await AudioEngine.ensure(song);
   if(!song._chart){ if(song.chart && song.chart!=='auto'){ const res=await fetch(song.chart); if(!res.ok) throw new Error('chart fetch'); song._chart=await res.json(); }
     else { song._chart=AutoChart.generate(AudioEngine.buffer); } }
   if(!song.bpm) song.bpm=song._chart.bpm; song.duration=song._chart.duration||song.duration||AudioEngine.buffer.duration; }
-function buildDiffSelect(){ const wrap=$('#diffSelect'); wrap.innerHTML=''; ['EASY','NORMAL','HARD','VERYHARD'].forEach(key=>{ const c=selectedSong._chart.charts[key]; if(!c) return; const d=document.createElement('div'); d.className='opt-pill'+(key===diffKey?' sel':'');
+function getChartSet(){ const key=PLAY_MODES[modeKey].chartKey; const cs=selectedSong._chart[key]; return (cs&&Object.keys(cs).length)?cs:selectedSong._chart.charts; }
+function buildModeSelect(){ const wrap=$('#modeSelect'); wrap.innerHTML='';
+  Object.keys(PLAY_MODES).forEach(key=>{ const mode=PLAY_MODES[key];
+    const avail=!!(selectedSong._chart[mode.chartKey]&&Object.keys(selectedSong._chart[mode.chartKey]).length)||key==='RHYTHM';
+    if(!avail&&key!=='RHYTHM') return;
+    const d=document.createElement('div'); d.className='opt-pill mode-pill'+(key===modeKey?' sel':'');
+    d.innerHTML=`<div class="pi">${mode.icon}</div><div class="pn">${mode.label}</div>`;
+    d.onclick=()=>{ modeKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); updateModeDesc(); buildDiffSelect(); };
+    wrap.appendChild(d); });
+  updateModeDesc(); }
+function updateModeDesc(){ const el=$('#modeDesc'); if(el) el.textContent=PLAY_MODES[modeKey].desc; }
+function buildDiffSelect(){ const wrap=$('#diffSelect'); wrap.innerHTML=''; const cset=getChartSet(); ['EASY','NORMAL','HARD','VERYHARD'].forEach(key=>{ const c=cset[key]; if(!c) return; const d=document.createElement('div'); d.className='opt-pill'+(key===diffKey?' sel':'');
   d.innerHTML=`<div class="pn">${DIFF_NAMES[key]}</div><div class="pd">${c.notes.length} notes</div>`; d.onclick=()=>{ diffKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); }; wrap.appendChild(d); }); }
 function buildLengthSelect(){ const wrap=$('#lengthSelect'); wrap.innerHTML=''; ['30','60','FULL'].forEach(key=>{ const meta=LENGTHS[key]; const dur=Math.min(meta.sec,selectedSong.duration); const d=document.createElement('div'); d.className='opt-pill'+(key===lengthKey?' sel':'');
   d.innerHTML=`<div class="pn">${meta.label}</div><div class="pd">${key==='FULL'?fmt(selectedSong.duration):fmt(dur)}</div>`; d.onclick=()=>{ lengthKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); }; wrap.appendChild(d); }); }
@@ -524,7 +543,7 @@ function openShop(){ updateShopCoins(); setShopCat(shopCat); $('#songSelectScree
 function closeShop(){ $('#shopScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); }
 function updateShopCoins(){ const e=$('#shopCoinVal'); if(e)e.textContent=Wallet.coins.toLocaleString(); }
 let shopCat='char';
-function setShopCat(cat){ shopCat=cat; document.querySelectorAll('#shopSeg .seg').forEach(b=>b.classList.toggle('sel',b.dataset.cat===cat)); renderShop(); }
+function setShopCat(cat){ shopCat=cat; document.querySelectorAll('#shopSeg .seg').forEach(b=>b.classList.toggle('sel',b.dataset.cat===cat)); const note=$('#shopCharNote'); if(note) note.style.display=(cat==='char')?'':'none'; renderShop(); }
 function notePreview(sk){ if(sk.kind==='draw') return '<div class="note-classic">'+LANE_COLORS.map(c=>'<i style="background:linear-gradient(180deg,'+c.a+','+c.b+')"></i>').join('')+'</div>'; return '<img class="note-sheet" src="'+sk.sheet+'" alt="">'; }
 function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
   if(shopCat==='note'){ grid.className='shop-grid note-grid';
@@ -546,7 +565,7 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
     else if(!owned){ b.onclick=()=>{ if(Wallet.coins<c.price){ toast('コインが足りないよ…'); return; } Wallet.add(-c.price); CharStore.owned.add(c.id); CharStore.equipped=c.id; CharStore.save(); applyCharacter(); updateShopCoins(); renderShop(); toast(c.name+'を購入！ \u2728'); }; }
     grid.appendChild(card); }); }
-function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='0')?'none':'shan'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); const so=parseInt(localStorage.getItem('pk_sfxoff'),10); if(!isNaN(so)) sfxOffsetMs=Math.min(150,Math.max(-100,so)); AudioEngine.sfxOffset=sfxOffsetMs; const lb=localStorage.getItem('pk_lanebg'); if(lb&&['none','white','black'].includes(lb)) laneBg=lb; const lo=parseInt(localStorage.getItem('pk_lanebgop'),10); if(!isNaN(lo)) laneBgOpacity=Math.min(100,Math.max(5,lo))/100; }catch(e){} }
+function loadPrefs(){ try{ LITE=localStorage.getItem('pk_lite')==='1'; const c=localStorage.getItem('pk_char'); SHOW_CHAR=(c===null)?true:(c==='1'); const st=localStorage.getItem('pk_sfxtype'); if(st){ AudioEngine.sfxType=st; } else { const old=localStorage.getItem('pk_sfx'); AudioEngine.sfxType=(old==='1')?'shan':'none'; } const sp=parseFloat(localStorage.getItem('pk_speed')); if(!isNaN(sp)) noteSpeed=Math.min(3,Math.max(0.5,sp)); const so=parseInt(localStorage.getItem('pk_sfxoff'),10); if(!isNaN(so)) sfxOffsetMs=Math.min(150,Math.max(-100,so)); AudioEngine.sfxOffset=sfxOffsetMs; const lb=localStorage.getItem('pk_lanebg'); if(lb&&['none','white','black'].includes(lb)) laneBg=lb; const lo=parseInt(localStorage.getItem('pk_lanebgop'),10); if(!isNaN(lo)) laneBgOpacity=Math.min(100,Math.max(5,lo))/100; }catch(e){} }
 function syncSfxOff(){ AudioEngine.sfxOffset=sfxOffsetMs; const e=$('#sfxOffVal'); if(e) e.textContent=(sfxOffsetMs>0?'+':'')+sfxOffsetMs+' ms'; }
 const HIT_SOUNDS=[{id:'none',name:'なし'},{id:'shan',name:'シャンシャン'},{id:'pon',name:'ポンポン'},{id:'don',name:'ドンドン'},{id:'kan',name:'カンカン'},{id:'pico',name:'ピコピコ'}];
 function renderSfxSel(){ const wrap=$('#sfxSel'); if(!wrap)return; wrap.innerHTML=''; HIT_SOUNDS.forEach(s=>{ const b=document.createElement('div'); b.className='sfxpill'+(AudioEngine.sfxType===s.id?' sel':''); b.textContent=s.name; b.onclick=()=>setHitSound(s.id); wrap.appendChild(b); }); }
