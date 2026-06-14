@@ -4,6 +4,27 @@
   },
   "songs": [
     {
+      "id": "maidwar",
+      "title": "ご主人様の隣は譲れません！",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ffb3c6",
+      "c2": "#3a2a4a",
+      "bpm": 136.0,
+      "duration": 185.7,
+      "audio": "songs/maidwar/audio.mp3",
+      "chart": "songs/maidwar/chart.json",
+      "jacket": "songs/maidwar/jacket.webp",
+      "preview": 25.0,
+      "desc": "たった一杯のコーヒー。\nそれだけのはずだった。\nだけど“隣を歩く権利”を巡って、メイド隊は全力出撃。\n優雅で騒がしい、平和な戦争が始まる――☕✨"
+    },
+    {
       "id": "bluestep",
       "title": "ブルーステップ",
       "artist": "Pastel Kingdom",
