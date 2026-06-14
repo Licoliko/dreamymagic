@@ -4,6 +4,27 @@
   },
   "songs": [
     {
+      "id": "morningtoast",
+      "title": "フルーモーニング、トースト",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#7ab8ff",
+      "c2": "#2a3a6a",
+      "bpm": 136.0,
+      "duration": 191.8,
+      "audio": "songs/morningtoast/audio.mp3",
+      "chart": "songs/morningtoast/chart.json",
+      "jacket": "songs/morningtoast/jacket.webp",
+      "preview": 20.0,
+      "desc": "いつもの朝なのに、少しだけ世界がきらめいて見える。\n焼きたてトーストとコーヒー、窓から差し込む青い光。\n何気ない時間が、なぜか忘れられない思い出になる。\nそんな“やさしい魔法”を詰め込んだ一曲です。"
+    },
+    {
       "id": "kuronojoou",
       "title": "黒の女王は海に沈む",
       "artist": "Pastel Kingdom",
