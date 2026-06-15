@@ -366,6 +366,7 @@ async function openOptions(song){
   $('#optBpm').textContent='BPM '+Math.round(song.bpm)+' ・ '+fmt(song.duration);
   if(song.bpm) renderSongs();
   buildModeSelect(); buildDiffSelect(); buildLengthSelect();
+  setTimeout(updateOptScrollHint,60); setTimeout(updateOptScrollHint,450);
 }
 async function loadSongData(song){ await AudioEngine.ensure(song);
   if(!song._chart){ if(song.chart && song.chart!=='auto'){ const res=await fetch(song.chart); if(!res.ok) throw new Error('chart fetch'); song._chart=await res.json(); }
@@ -378,7 +379,7 @@ function buildModeSelect(){ const wrap=$('#modeSelect'); wrap.innerHTML='';
     if(!avail&&key!=='RHYTHM') return;
     const d=document.createElement('div'); d.className='opt-pill mode-pill'+(key===modeKey?' sel':'');
     d.innerHTML=`<div class="pi">${mode.icon}</div><div class="pn">${mode.label}</div>`;
-    d.onclick=()=>{ modeKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); updateModeDesc(); buildDiffSelect(); };
+    d.onclick=()=>{ modeKey=key; wrap.querySelectorAll('.opt-pill').forEach(o=>o.classList.remove('sel')); d.classList.add('sel'); updateModeDesc(); buildDiffSelect(); setTimeout(updateOptScrollHint,60); };
     wrap.appendChild(d); });
   updateModeDesc(); }
 function updateModeDesc(){ const el=$('#modeDesc'); if(el) el.textContent=PLAY_MODES[modeKey].desc; }
@@ -468,7 +469,9 @@ function buildHisto(offsets){ const wrap=$('#histo'); wrap.innerHTML=''; const B
   offsets.forEach(o=>{ let idx=Math.round((o/RANGE)*mid+mid); idx=Math.max(0,Math.min(BINS-1,idx)); bins[idx]++; });
   const mx=Math.max(1,...bins);
   bins.forEach((c,i)=>{ const b=document.createElement('div'); b.className='bar'+(Math.abs(i-mid)<=1?' mid':''); b.style.height='2px'; wrap.appendChild(b); setTimeout(()=>{ b.style.height=(3+c/mx*66)+'px'; },120+i*30); }); }
-function updateScrollHint(){ const b=$('#resultBody'),h=$('#scrollHint'); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
+function _updateScrollHintFor(bodyId, hintId){ const b=$(bodyId),h=$(hintId); if(!b||!h)return; const more=(b.scrollHeight-b.clientHeight)>12; const atBottom=(b.scrollTop+b.clientHeight)>=(b.scrollHeight-16); h.classList.toggle('hide', !more||atBottom); }
+function updateScrollHint(){ _updateScrollHintFor('#resultBody','#scrollHint'); }
+function updateOptScrollHint(){ _updateScrollHintFor('#startScreen','#scrollHintOpt'); }
 function endGame(){
   if(!G||G.ended) return;
   G.ended=true; G.started=false; AudioEngine.stop(); cancelAnimationFrame(_feverDance.phase); endFever(); stage.classList.remove('playing');
@@ -671,5 +674,7 @@ async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load
   Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); syncSfxOff(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); renderLaneBgSel(); syncLaneBgOp(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);
+  const ss=$('#startScreen'); if(ss) ss.addEventListener('scroll',updateOptScrollHint);
+  window.addEventListener('resize',updateOptScrollHint);
   await loadManifest(); renderSongs(); }
 boot();
