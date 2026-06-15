@@ -398,7 +398,7 @@ $('#previewBtn').onclick=async()=>{ const b=$('#previewBtn'); if(AudioEngine.pre
 /* ============ flow ============ */
 function updateSongCard(){ $('#cardTitle').textContent=selectedSong.title; $('#cardSub').textContent=selectedSong.artist||''; $('#diffBadge').textContent=DIFF_NAMES[diffKey]||diffKey; $('#lenBadge').textContent=LENGTHS[lengthKey].label; $('#lvLabel').textContent=chartOf(selectedSong).notes.length+' notes'; }
 async function startGame(){ AudioEngine.stopPreview(); resetPreviewBtn();
-  $('#startScreen').classList.add('hidden'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
+  $('#startScreen').classList.add('hidden'); $('#scrollHintOpt').classList.add('hide'); $('#loadingText').textContent='よみこみちゅう…'; $('#loading').classList.remove('hidden');
   try{ await loadSongData(selectedSong); }catch(e){ console.error(e); $('#loadingText').textContent='読み込み失敗。戻ってもう一度お試しください。'; return; }
   const gameBuf=await AudioEngine.ensure(selectedSong); _gameBuf=gameBuf;
   $('#loading').classList.add('hidden'); updateSongCard(); newGame(); AudioEngine.bake(AudioEngine.sfxType); AudioEngine.setLatencyOffset(latencyMs); stage.classList.add('playing');
@@ -520,7 +520,7 @@ function pauseToggle(){ if(!G||!G.started||G.ended)return; if(G.paused)resumeGam
 function resumeGame(){ if(!G||!G.paused)return; const pb=$('#pauseBtn'); if(pb)pb.innerHTML='&#10074;&#10074;'; $('#pauseOverlay').classList.add('hidden'); let n=3; const cd=$('#countdown'); cd.classList.remove('hidden'); const showN=()=>cd.innerHTML=`<div class="c">${n>0?n:'GO!'}</div>`; showN();
   const iv=setInterval(()=>{ n--; if(n<0){clearInterval(iv); cd.classList.add('hidden'); G.paused=false; AudioEngine.resume();} else showN(); },700); }
 function toSongSelect(){ AudioEngine.stop(); AudioEngine.stopPreview(); resetPreviewBtn(); if(G)G.ended=true; cancelAnimationFrame(_feverDance.phase); _feverDanceReturn(); ctx.clearRect(0,0,W,H); stage.classList.remove('playing');
-  $('#pauseOverlay').classList.add('hidden'); $('#resultScreen').classList.add('hidden'); $('#startScreen').classList.add('hidden');
+  $('#pauseOverlay').classList.add('hidden'); $('#resultScreen').classList.add('hidden'); $('#startScreen').classList.add('hidden'); $('#scrollHintOpt').classList.add('hide');
   $('#score').textContent='00000000'; $('#comboNum').textContent='0'; $('#scoreAdd').textContent=''; $('#feverFill').style.width='0%'; $('#lifeFill').style.width='100%'; $('#lifeVal').textContent='1000'; $('#progFill').style.width='0%'; stage.classList.remove('fever');
   renderSongs(); $('#songSelectScreen').classList.remove('hidden'); }
 
@@ -596,7 +596,7 @@ $('#fileInput').onchange=(e)=>{ const files=[...e.target.files]; let added=0, sk
 
 /* ============ bindings ============ */
 $('#startBtn').onclick=startGame;
-$('#backToSongs').onclick=()=>{ AudioEngine.stopPreview(); resetPreviewBtn(); $('#startScreen').classList.add('hidden'); $('#songSelectScreen').classList.remove('hidden'); };
+$('#backToSongs').onclick=()=>{ AudioEngine.stopPreview(); resetPreviewBtn(); $('#startScreen').classList.add('hidden'); $('#scrollHintOpt').classList.add('hide'); $('#songSelectScreen').classList.remove('hidden'); };
 $('#pauseBtn').onclick=pauseToggle;
 $('#resumeBtn').onclick=resumeGame;
 $('#pauseOverlay').addEventListener('click',e=>{ if(e.target&&e.target.id==='pauseOverlay') resumeGame(); });
