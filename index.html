@@ -146,7 +146,7 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .si-more-btn{display:inline-block;margin-top:6px;font-size:13px;color:rgba(255,210,150,.85);cursor:pointer;user-select:none;padding:2px 6px;border-radius:6px;background:rgba(255,210,150,.08);}
 
 /* opt screen marquee — seamless double-text loop */
-.opt-marquee-wrap{width:100%;overflow:hidden;background:rgba(255,255,255,.07);border-radius:8px;height:32px;display:flex;align-items:center;margin:8px 0;}
+.opt-marquee-wrap{width:100%;overflow:hidden;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:16px;height:32px;display:flex;align-items:center;margin:8px 0;min-height:32px;flex-shrink:0;}
 .opt-marquee{display:inline-block;white-space:nowrap;font-size:12px;color:#e8d6ff;animation:marqueeScroll 14s linear infinite;}
 @keyframes marqueeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .fav-star{position:absolute;top:10px;right:12px;font-size:22px;color:rgba(255,255,255,.35);cursor:pointer;transition:.15s;}
