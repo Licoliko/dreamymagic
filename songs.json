@@ -4,6 +4,69 @@
   },
   "songs": [
     {
+      "id": "maidwar2",
+      "title": "メイド戦争（屋敷崩壊中）",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#e8d4ff",
+      "c2": "#2a1a3a",
+      "bpm": 123.05,
+      "duration": 223.68,
+      "audio": "songs/maidwar2/audio.mp3",
+      "chart": "songs/maidwar2/chart.json",
+      "jacket": "songs/maidwar2/jacket.webp",
+      "preview": 67.1,
+      "desc": "目を覚ますと、お屋敷の中から轟音。\n駆け下りた先で繰り広げられていたのは、二人のメイドによる優雅で最悪な決闘だった。\n飛び散る紅茶、砕ける家具、崩れる日常。\n――泣いているのは、なぜか戦っていない“あるじさま”だけだった。"
+    },
+    {
+      "id": "skyofcity",
+      "title": "新しい街の空で",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#c9c5e0",
+      "c2": "#2a2a3a",
+      "bpm": 123.05,
+      "duration": 186.4,
+      "audio": "songs/skyofcity/audio.mp3",
+      "chart": "songs/skyofcity/chart.json",
+      "jacket": "songs/skyofcity/jacket.webp",
+      "preview": 55.9,
+      "desc": "知らない街、知らない景色。\n不安なはずなのに、隣にいるだけで前を向けた。\nこれは世界が変わった話じゃない。\n誰かと出会って、自分が変わっていく歌。"
+    },
+    {
+      "id": "cheki",
+      "title": "チェキ★マッチゲーム",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "c1": "#ff9ad4",
+      "c2": "#3a2a4a",
+      "bpm": 136.0,
+      "duration": 174.68,
+      "audio": "songs/cheki/audio.mp3",
+      "chart": "songs/cheki/chart.json",
+      "jacket": "songs/cheki/jacket.webp",
+      "preview": 52.4,
+      "desc": "放課後、突然始まった「絵あわせゲーム」。\n揃えればもらえるのは、彼女の秘密のチェキ二枚。\nでも本当に試されているのは記憶？運？それとも——心？\nめくるたび、逃げ道がひとつずつ消えていく。"
+    },
+    {
       "id": "maidwar",
       "title": "ご主人様の隣は譲れません！",
       "artist": "Pastel Kingdom",
