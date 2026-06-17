@@ -356,13 +356,14 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
 /* ============ options ============ */
 async function openOptions(song){
   AudioEngine.stopPreview(); resetPreviewBtn();
+  selectedSong=song;
   $('#optJacket').innerHTML=jacketHTML(song); $('#optTitle').textContent=song.title; $('#optSub').textContent=(song.artist||'')+(song.sub?(' ・ '+song.sub):''); $('#optBpm').textContent='読み込み中…';
-  $('#diffSelect').innerHTML='<div class="opt-pill"><div class="pn">…</div></div>'; $('#lengthSelect').innerHTML='';
+  $('#diffSelect').innerHTML='<div class="opt-pill"><div class="pn">…</div></div>'; $('#lengthSelect').innerHTML=''; $('#modeSelect').innerHTML='';
   $('#songSelectScreen').classList.add('hidden'); $('#startScreen').classList.remove('hidden'); { const c=$('#previewVol'); if(c)c.value=Math.round(volume*100); }
   { const m=$('#optMarquee'); if(m){ const base=(song.desc?song.desc.replace(/\n/g,'　'):song.title+' / '+(song.artist||''))+'　　　　　'; const txt=base.repeat(2); m.textContent=txt+txt; m.style.animation='none'; m.getBoundingClientRect(); requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ m.style.animation=''; }); }); } }
   try{ await loadSongData(song); }
   catch(e){ console.error(e); $('#optBpm').textContent='読み込み失敗'; toast('曲を読み込めませんでした'); return; }
-  selectedSong=song;
+  if(selectedSong!==song) return;
   $('#optBpm').textContent='BPM '+Math.round(song.bpm)+' ・ '+fmt(song.duration);
   if(song.bpm) renderSongs();
   buildModeSelect(); buildDiffSelect(); buildLengthSelect();
