@@ -4,6 +4,113 @@
   },
   "songs": [
     {
+      "id": "ghostescort_m",
+      "title": "ゴーストエスコート（男性ver.）",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#4050a0",
+      "c2": "#080818",
+      "bpm": 172.27,
+      "duration": 248.76,
+      "audio": "songs/ghostescort/audio_m.mp3",
+      "chart": "songs/ghostescort/chart_m.json",
+      "jacket": "songs/ghostescort/jacket.webp",
+      "preview": 74.6,
+      "desc": "差し出されたその手は、\n救いか、\nそれとも呪いか—\n\n骸骨執事と妖しいメイドが迎える\n月夜のお化け屋敷\n\n恐怖さえ追い越す疾走感で、\n亡霊たちの夜を駆け抜ける\n\nあなたは彼女の手を掴む？ \nそれとも—\n\n今すぐ逃げ出す？"
+    },
+    {
+      "id": "ghostescort_f",
+      "title": "ゴーストエスコート（女性ver.）",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#6040a0",
+      "c2": "#080818",
+      "bpm": 117.45,
+      "duration": 267.0,
+      "audio": "songs/ghostescort/audio_f.mp3",
+      "chart": "songs/ghostescort/chart_f.json",
+      "jacket": "songs/ghostescort/jacket.webp",
+      "preview": 80.1,
+      "desc": "差し出されたその手は、\n救いか、\nそれとも呪いか—\n\n骸骨執事と妖しいメイドが迎える\n月夜のお化け屋敷\n\n恐怖さえ追い越す疾走感で、\n亡霊たちの夜を駆け抜ける\n\nあなたは彼女の手を掴む？ \nそれとも—\n\n今すぐ逃げ出す？"
+    },
+    {
+      "id": "kemomimi",
+      "title": "けもみみモーニング♪",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#f0c070",
+      "c2": "#1a1008",
+      "bpm": 152.0,
+      "duration": 235.96,
+      "audio": "songs/kemomimi/audio.mp3",
+      "chart": "songs/kemomimi/chart.json",
+      "jacket": "songs/kemomimi/jacket.webp",
+      "preview": 70.8,
+      "desc": "にゃんにゃん\nわんわん\nみんなで朝ごはん！\n\n焼きたてパンと笑顔が並ぶ、\nにぎやかな朝のカフェ。\n\nケモミミちゃんたちの可愛い掛け声に、\n元気も満タン♪\n\n今日も楽しい一日が始まるよ！"
+    },
+    {
+      "id": "omoi",
+      "title": "想いを、音に。",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#c060c0",
+      "c2": "#0a0818",
+      "bpm": 136.0,
+      "duration": 317.88,
+      "audio": "songs/omoi/audio.mp3",
+      "chart": "songs/omoi/chart.json",
+      "jacket": "songs/omoi/jacket.webp",
+      "preview": 95.4,
+      "desc": "SUNOちゃんの歌です。\nSUNOちゃんに作ってもらった曲が所々に\n散りばめられている歌詞にしました。\n\nどの曲も、\n私にとっては最高の一曲だよ！\nありがとうSUNOちゃん！"
+    },
+    {
+      "id": "meemee",
+      "title": "めぇめぇナイトエスケープ！",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#f0d8e8",
+      "c2": "#1a0828",
+      "bpm": 123.05,
+      "duration": 247.12,
+      "audio": "songs/meemee/audio.mp3",
+      "chart": "songs/meemee/chart.json",
+      "jacket": "songs/meemee/jacket.webp",
+      "preview": 74.1,
+      "desc": "め、めぇー\nここなら見つからない…かな💦\n\nあ、あれ！？\n狼さんに囲まれてる！？"
+    },
+    {
       "id": "asagohan",
       "title": "朝ごはんが恋に飛んだ！",
       "artist": "kumatokuma",
