@@ -4,6 +4,138 @@
   },
   "songs": [
     {
+      "id": "asagohan",
+      "title": "朝ごはんが恋に飛んだ！",
+      "artist": "kumatokuma",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#b090d8",
+      "c2": "#1a0c38",
+      "bpm": 103.36,
+      "duration": 263.16,
+      "audio": "songs/asagohan/audio.mp3",
+      "chart": "songs/asagohan/chart.json",
+      "jacket": "songs/asagohan/jacket.webp",
+      "preview": 78.9,
+      "desc": "フォークから飛び出した朝ごはんを、\n隣の青年がまさかの口でキャッチ！？\n\n固まる二人に、彼がひと言。\n「……美味しいね」\n\n偶然から始まる、\n甘くてドタバタな朝のラブコメソング。\n\n恋の始まりは、たいてい予定外。"
+    },
+    {
+      "id": "limit20",
+      "title": "limit-20！",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#9060d0",
+      "c2": "#1a0828",
+      "bpm": 123.05,
+      "duration": 187.56,
+      "audio": "songs/limit20/audio.mp3",
+      "chart": "songs/limit20/chart.json",
+      "jacket": "songs/limit20/jacket.webp",
+      "preview": 56.3,
+      "desc": "レースも気になる。\nでも……\nそのミニチュアカーの完成度……\n高すぎない！？🏎️✨\n\n限定20個、配布開始——\n熱気も心拍数もレッドゾーン。\n\nサーキットで一番速くなくても、\n一番欲しくなる瞬間。"
+    },
+    {
+      "id": "strawberry",
+      "title": "ストロベリーアリス、夜を追い越して",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#ff6080",
+      "c2": "#1a0828",
+      "bpm": 136.0,
+      "duration": 192.2,
+      "audio": "songs/strawberry/audio.mp3",
+      "chart": "songs/strawberry/chart.json",
+      "jacket": "songs/strawberry/jacket.webp",
+      "preview": 57.7,
+      "desc": "甘くて可愛いストロベリーアリスが渋谷へ到着🍓✨\n\n「遅れてゴッメーン！」\nって笑いながら夜へ滑り込む。\n\nストロベリーアリスと走る、\nキラキラのナイトドライブ。\n\nさぁ、楽しい時間は——\n　　　　　　　これからこれから🌙💖"
+    },
+    {
+      "id": "mokuyoubi",
+      "title": "まだ木曜日！？",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#e8b860",
+      "c2": "#2a1848",
+      "bpm": 136.0,
+      "duration": 166.68,
+      "audio": "songs/mokuyoubi/audio.mp3",
+      "chart": "songs/mokuyoubi/chart.json",
+      "jacket": "songs/mokuyoubi/jacket.webp",
+      "preview": 50.0,
+      "desc": "かんぱーい！\nえ？\n明日はまだ金曜日？\n\n大丈夫ダイジョーブ！\n明日行けば休みだよ！\n毎日楽しまなくっちゃ！"
+    },
+    {
+      "id": "docchi",
+      "title": "どっちにするの？",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#f0c8e0",
+      "c2": "#3a1848",
+      "bpm": 161.5,
+      "duration": 156.2,
+      "audio": "songs/docchi/audio.mp3",
+      "chart": "songs/docchi/chart.json",
+      "jacket": "songs/docchi/jacket.webp",
+      "preview": 46.9,
+      "desc": "目の前に現れたのは、\nなぜか花嫁姿のケモミミ美少女ふたりー？\nしかも突然の「どっちにする？」宣言。\n\n付き合ってもないのに結婚候補にされる主人公。\n\n可愛いのに逃げ場ゼロなラブコメ修羅場、開幕――‼︎"
+    },
+    {
+      "id": "hitokuchi",
+      "title": "ひとくちだけの恋泥棒",
+      "artist": "Pastel Kingdom",
+      "sub": "",
+      "genres": [
+        "POPS",
+        "KAWAII",
+        "オリジナル"
+      ],
+      "isNew": true,
+      "price": 300,
+      "c1": "#ffb0d0",
+      "c2": "#5a1848",
+      "bpm": 143.55,
+      "duration": 286.0,
+      "audio": "songs/hitokuchi/audio.mp3",
+      "chart": "songs/hitokuchi/chart.json",
+      "jacket": "songs/hitokuchi/jacket.webp",
+      "preview": 85.8,
+      "desc": "にゃはは！\nご主人様のことは好きだけど、\nご主人様の朝食を勝手に食べちゃうにゃ！\n\nにゃにゃ！？\nご主人様にばれていたにゃ！"
+    },
+    {
       "id": "maidwar2",
       "title": "メイド戦争（屋敷崩壊中）",
       "artist": "Pastel Kingdom",

@@ -52,6 +52,10 @@ function noteSkinById(id){ return NOTE_SKINS.find(s=>s.id===id)||NOTE_SKINS[0]; 
 const NoteStore={ owned:new Set(NOTE_DEFAULT), equipped:'classic',
   load(){ try{ const o=localStorage.getItem('pk_notes_owned'); if(o) JSON.parse(o).forEach(id=>this.owned.add(id)); const e=localStorage.getItem('pk_note_equip'); if(e&&NOTE_SKINS.some(s=>s.id===e)) this.equipped=e; }catch(e){} NOTE_DEFAULT.forEach(id=>this.owned.add(id)); },
   save(){ try{ localStorage.setItem('pk_notes_owned',JSON.stringify([...this.owned])); localStorage.setItem('pk_note_equip',this.equipped); }catch(e){} } };
+const SongStore={ unlocked:new Set(),
+  load(){ try{ const o=localStorage.getItem('pk_songs_owned'); if(o) JSON.parse(o).forEach(id=>this.unlocked.add(id)); }catch(e){} },
+  save(){ try{ localStorage.setItem('pk_songs_owned',JSON.stringify([...this.unlocked])); }catch(e){} },
+  isUnlocked(song){ return !(song.price>0) || this.unlocked.has(song.id); } };
 const noteImgs={}; let CUR_NOTE=NOTE_SKINS[0];
 function loadNoteSkin(skin){ if(!skin||skin.kind==='draw'||noteImgs[skin.id])return; const img=new Image(); const rec={img,ready:false,aspect:1}; noteImgs[skin.id]=rec; img.onload=()=>{ rec.ready=true; rec.aspect=img.naturalHeight/(img.naturalWidth/4); }; img.src=skin.sheet; }
 function applyNoteSkin(){ CUR_NOTE=noteSkinById(NoteStore.equipped); loadNoteSkin(CUR_NOTE); }
@@ -347,6 +351,10 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
   else arr.forEach(song=>{ const el=document.createElement('div'); el.className='song-item';
     const g=(song.genres&&song.genres[0])||'ORIGINAL'; const bpm=song.bpm?('BPM '+Math.round(song.bpm)):'BPM ?'; const dur=song.duration?fmt(song.duration):'--:--';
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
+    const locked=!SongStore.isUnlocked(song);
+    if(locked){ el.className='song-item song-locked';
+      el.innerHTML=`<div class="jacket" style="position:relative">${jacketHTML(song)}<div class="lock-overlay">🔒</div></div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div><div class="song-price-tag">🪙 ${song.price} コインで解放</div></div>`;
+      el.onclick=()=>{ openShop(); setShopCat('song'); }; list.appendChild(el); return; }
     el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div>${song.desc?`<div class="si-more-btn">&#8964; もっと見る</div><div class="si-desc">${song.desc.replace(/\n/g,'<br>')}</div>`:''}</div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     if(song.desc){ const btn=el.querySelector('.si-more-btn'); btn.onclick=(e)=>{ e.stopPropagation(); el.classList.toggle('open'); btn.textContent=el.classList.contains('open')?'▲ 閉じる':'▽ もっと見る'; }; }
     el.querySelector('.fav-star').onclick=(e)=>{ e.stopPropagation(); if(favorites.has(song.id))favorites.delete(song.id); else favorites.add(song.id); renderSongs(); };
@@ -553,6 +561,15 @@ let shopCat='char';
 function setShopCat(cat){ shopCat=cat; document.querySelectorAll('#shopSeg .seg').forEach(b=>b.classList.toggle('sel',b.dataset.cat===cat)); const note=$('#shopCharNote'); if(note) note.style.display=(cat==='char')?'':'none'; renderShop(); }
 function notePreview(sk){ if(sk.kind==='draw') return '<div class="note-classic">'+LANE_COLORS.map(c=>'<i style="background:linear-gradient(180deg,'+c.a+','+c.b+')"></i>').join('')+'</div>'; return '<img class="note-sheet" src="'+sk.sheet+'" alt="">'; }
 function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
+  if(shopCat==='song'){ grid.className='shop-grid song-grid';
+    const songs=allSongs().filter(s=>s.price>0);
+    if(!songs.length){ grid.innerHTML='<div class="empty-msg">購入できる曲はまだありません</div>'; return; }
+    songs.forEach(s=>{ const unlocked=SongStore.isUnlocked(s);
+      const card=document.createElement('div'); card.className='shop-card songcard'+(unlocked?' equipped':'');
+      const btn=unlocked?'<button class="shop-btn equipped">解放済み</button>':'<button class="shop-btn buy">\uD83E\uDE99 '+s.price+'</button>';
+      card.innerHTML='<div class="shop-jacket">'+jacketHTML(s)+'</div><div class="shop-name">'+s.title+'</div><div class="shop-subname">'+(s.artist||'')+'</div>'+btn;
+      if(!unlocked){ const b=card.querySelector('.shop-btn'); b.onclick=()=>{ if(Wallet.coins<s.price){ toast('コインが足りないよ…'); return; } Wallet.add(-s.price); SongStore.unlocked.add(s.id); SongStore.save(); updateShopCoins(); renderShop(); renderSongs(); toast('「'+s.title+'」を解放！ \u2728'); }; }
+      grid.appendChild(card); }); return; }
   if(shopCat==='note'){ grid.className='shop-grid note-grid';
     NOTE_SKINS.forEach(s=>{ const owned=NoteStore.owned.has(s.id), eq=NoteStore.equipped===s.id;
       const card=document.createElement('div'); card.className='shop-card noteskin'+(eq?' equipped':'');
@@ -671,7 +688,7 @@ let _audioUnlocked=false;
 function unlockAudioOnce(){ if(_audioUnlocked)return; _audioUnlocked=true; AudioEngine.unlock(); }
 document.addEventListener('pointerdown',e=>{ unlockAudioOnce(); if(!(G&&!G.ended)) FX.burst(e.clientX,e.clientY); },{passive:true});
 
-async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); Stats.load(); resize(); buildStars(); FX.init();
+async function boot(){ loadPrefs(); loadKeys(); CharStore.load(); NoteStore.load(); SongStore.load(); Stats.load(); resize(); buildStars(); FX.init();
   Wallet.load(); updateCoinUI(); buildTabs(); buildNav(); syncCal(); syncSfxOff(); applyLite(); applyChar(); applyCharacter(); applyNoteSkin(); renderSfxSel(); renderLaneBgSel(); syncLaneBgOp(); applySpeed(); renderKeyConfig(); requestAnimationFrame(loop);
   document.querySelectorAll('#shopSeg .seg').forEach(b=>b.onclick=()=>setShopCat(b.dataset.cat));
   const rb=$('#resultBody'); if(rb) rb.addEventListener('scroll',updateScrollHint);

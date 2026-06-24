@@ -170,6 +170,13 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 .shop-card.equipped{border-color:#ffe7a8;box-shadow:0 0 0 1.5px rgba(255,220,150,.6),0 6px 18px rgba(255,200,90,.25);}
 .shop-portrait{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18);}
 .shop-portrait img{width:98%;height:98%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));}
+.shop-jacket{width:100%;border-radius:12px;overflow:hidden;aspect-ratio:1/1;}
+.shop-jacket img,.shop-jacket canvas{width:100%;height:100%;object-fit:cover;}
+.shop-subname{font-size:10px;color:#c0a8e0;margin-top:-4px;}
+.song-grid{grid-template-columns:repeat(2,1fr)!important;}
+.song-item.song-locked{opacity:.85;}
+.lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(16,8,40,.45);border-radius:8px;}
+.song-price-tag{font-size:11px;color:#ffd080;margin-top:4px;}
 .shop-char-lv{position:absolute;bottom:5px;right:6px;background:linear-gradient(90deg,#ffd24a,#ffb830);color:#3a1d00;font-family:'Mochiy Pop One';font-size:9px;border-radius:7px;padding:1px 5px;box-shadow:0 1px 4px rgba(0,0,0,.4);}
 .shop-name{font-family:'Mochiy Pop One';font-size:15px;}
 .shop-btn{cursor:pointer;width:100%;border:none;border-radius:13px;padding:9px;font-weight:800;font-size:13px;font-family:'Mochiy Pop One';}
@@ -414,8 +421,8 @@ html,body{height:100%;overflow:hidden;background:#0c0820;font-family:'M PLUS Rou
 
   <div id="shopScreen" class="screen hidden">
     <div class="shop-head"><div class="back-link" id="shopBack" style="position:static">&#8592; もどる</div><div class="shop-coins"><img src="assets/coin_sm.webp" style="width:20px;height:20px;vertical-align:middle;"><span id="shopCoinVal">200</span></div></div>
-    <div class="shop-title"><span class="crown">&#9819;</span><h1>SHOP</h1><div class="sub">キャラクター ＆ ノーツ</div></div>
-    <div class="shop-seg" id="shopSeg"><button class="seg sel" data-cat="char">キャラ</button><button class="seg" data-cat="note">ノーツ</button></div>
+    <div class="shop-title"><span class="crown">&#9819;</span><h1>SHOP</h1><div class="sub">キャラクター ＆ ノーツ ＆ 楽曲</div></div>
+    <div class="shop-seg" id="shopSeg"><button class="seg sel" data-cat="char">キャラ</button><button class="seg" data-cat="note">ノーツ</button><button class="seg" data-cat="song">楽曲</button></div>
     <div class="shop-note" id="shopCharNote" style="text-align:center;font-size:10.5px;color:#c9b6ec;margin:-2px 0 8px;padding:0 16px;">&#8251; レベルは使用回数によるもので、スコアには影響しません</div>
     <div class="shop-grid" id="shopGrid"></div>
   </div>
