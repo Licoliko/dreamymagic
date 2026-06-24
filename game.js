@@ -353,7 +353,7 @@ function renderSongs(){ const list=$('#songList'); list.innerHTML=''; const arr=
     const chips=[`<span class="chip g">${g}</span>`,`<span class="chip">${bpm}</span>`,`<span class="chip">${dur}</span>`].join('');
     const locked=!SongStore.isUnlocked(song);
     if(locked){ el.className='song-item song-locked';
-      el.innerHTML=`<div class="jacket" style="position:relative">${jacketHTML(song)}<div class="lock-overlay">🔒</div></div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div><div class="song-price-tag">🪙 ${song.price} コインで解放</div></div>`;
+      el.innerHTML=`<div class="jacket" style="position:relative">${jacketHTML(song)}<div class="lock-overlay">🔒</div></div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div><div class="song-price-tag"><img src="assets/coin_sm.webp" style="width:14px;height:14px;vertical-align:middle;margin-right:2px;">${song.price} コインで解放</div></div>`;
       el.onclick=()=>{ openShop(); setShopCat('song'); }; list.appendChild(el); return; }
     el.innerHTML=`<div class="jacket">${jacketHTML(song)}</div><div class="si-info"><div class="si-title">${song.title}</div><div class="si-artist">${song.artist||''}</div><div class="si-chips">${chips}</div>${song.desc?`<div class="si-more-btn">&#8964; もっと見る</div><div class="si-desc">${song.desc.replace(/\n/g,'<br>')}</div>`:''}</div><span class="fav-star${favorites.has(song.id)?' on':''}">\u2605</span>`;
     if(song.desc){ const btn=el.querySelector('.si-more-btn'); btn.onclick=(e)=>{ e.stopPropagation(); el.classList.toggle('open'); btn.textContent=el.classList.contains('open')?'▲ 閉じる':'▽ もっと見る'; }; }
@@ -566,14 +566,14 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
     if(!songs.length){ grid.innerHTML='<div class="empty-msg">購入できる曲はまだありません</div>'; return; }
     songs.forEach(s=>{ const unlocked=SongStore.isUnlocked(s);
       const card=document.createElement('div'); card.className='shop-card songcard'+(unlocked?' equipped':'');
-      const btn=unlocked?'<button class="shop-btn equipped">解放済み</button>':'<button class="shop-btn buy">\uD83E\uDE99 '+s.price+'</button>';
+      const btn=unlocked?'<button class="shop-btn equipped">解放済み</button>':'<button class="shop-btn buy"><img src="assets/coin_sm.webp" style="width:14px;height:14px;vertical-align:middle;margin-right:2px;">'+s.price+'</button>';
       card.innerHTML='<div class="shop-jacket">'+jacketHTML(s)+'</div><div class="shop-name">'+s.title+'</div><div class="shop-subname">'+(s.artist||'')+'</div>'+btn;
       if(!unlocked){ const b=card.querySelector('.shop-btn'); b.onclick=()=>{ if(Wallet.coins<s.price){ toast('コインが足りないよ…'); return; } Wallet.add(-s.price); SongStore.unlocked.add(s.id); SongStore.save(); updateShopCoins(); renderShop(); renderSongs(); toast('「'+s.title+'」を解放！ \u2728'); }; }
       grid.appendChild(card); }); return; }
   if(shopCat==='note'){ grid.className='shop-grid note-grid';
     NOTE_SKINS.forEach(s=>{ const owned=NoteStore.owned.has(s.id), eq=NoteStore.equipped===s.id;
       const card=document.createElement('div'); card.className='shop-card noteskin'+(eq?' equipped':'');
-      const btn=eq?'<button class="shop-btn equipped">選択中</button>':owned?'<button class="shop-btn select">選択する</button>':'<button class="shop-btn buy">\uD83E\uDE99 '+s.price+'</button>';
+      const btn=eq?'<button class="shop-btn equipped">選択中</button>':owned?'<button class="shop-btn select">選択する</button>':'<button class="shop-btn buy"><img src="assets/coin_sm.webp" style="width:14px;height:14px;vertical-align:middle;margin-right:2px;">'+s.price+'</button>';
       card.innerHTML='<div class="note-portrait">'+notePreview(s)+'</div><div class="shop-name">'+s.name+'</div>'+btn;
       const b=card.querySelector('.shop-btn');
       if(!eq&&owned){ b.onclick=()=>{ NoteStore.equipped=s.id; NoteStore.save(); applyNoteSkin(); renderShop(); toast(s.name+'に変更したよ \u2728'); }; }
@@ -583,7 +583,7 @@ function renderShop(){ const grid=$('#shopGrid'); grid.innerHTML='';
   CHARACTERS.forEach(c=>{ const owned=CharStore.owned.has(c.id), eq=CharStore.equipped===c.id;
     const lv=CharLevel.label(c.id);
     const card=document.createElement('div'); card.className='shop-card charcard'+(eq?' equipped':'');
-    const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy">\uD83E\uDE99 '+c.price+'</button>';
+    const btn = eq?'<button class="shop-btn equipped">選択中</button>' : owned?'<button class="shop-btn select">選択する</button>' : '<button class="shop-btn buy"><img src="assets/coin_sm.webp" style="width:14px;height:14px;vertical-align:middle;margin-right:2px;">'+c.price+'</button>';
     card.innerHTML='<div class="shop-portrait" style="background:linear-gradient(160deg,'+c.c1+','+c.c2+')"><img src="'+c.img+'" alt=""><div class="shop-char-lv">'+lv+'</div></div><div class="shop-name">'+c.name+'</div>'+btn;
     const b=card.querySelector('.shop-btn');
     if(!eq&&owned){ b.onclick=()=>{ CharStore.equipped=c.id; CharStore.save(); applyCharacter(); renderShop(); toast(c.name+'に変更したよ \u2728'); }; }
